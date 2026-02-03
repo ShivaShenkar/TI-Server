@@ -7,10 +7,10 @@ from services.files_service import *
 system_drive = get_main_drive()
 
 def fetch_data():
-    response = requests.get('https://raw.githubusercontent.com/ShivaShenkar/TI-Server/main/db/apps.json')
+    response = requests.get('https://raw.githubusercontent.com/ShivaShenkar/TI-Server/refs/heads/main/db/apps.json')
     if response.status_code == 200:
         data = response.json()
-        
+
         #update apps.json according to fetched data from github
         override_apps(data)
         installed_apps = get_installed_apps()
