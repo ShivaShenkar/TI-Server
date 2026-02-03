@@ -6,4 +6,12 @@
         "version": "1.0.1",
         "github_url": "https://github.com/ShivaShenkar/Stories-of-Aida"
     }
+    ,
+    {
+        "id": "id2",
+        "name": "Aliza's Project",
+        "description": "The Project of Aliza",
+        "version": "1.0.0",
+        "github_url": "https://github.com/Alizalazar9/My-angular-app"
+    }
 ]
