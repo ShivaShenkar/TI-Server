@@ -36,9 +36,8 @@ def fetch_data():
         
         
         return data
-    else:
-        return jsonify({"error": "Failed to fetch data"}), 500
 
 
 def version_tuple(s):
     return tuple(int(x) for x in s.split("."))
+
