@@ -14,6 +14,8 @@ def update_data():
         #update apps.json according to fetched data from github
     override_apps(data)
 
+
+
 def fetch_data():
         update_data()
         db_path = os.path.join(os.path.dirname(__file__), "..", "db", "apps.json")

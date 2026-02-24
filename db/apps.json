@@ -1,17 +1,7 @@
 [
     {
-        "id": "id1",
-        "name": "Stories of Aida",
-        "description": "Site for my Granny",
-        "version": "1.0.1",
-        "github_url": "https://github.com/ShivaShenkar/Stories-of-Aida"
-    }
-    ,
-    {
-        "id": "id2",
-        "name": "Aliza's Project",
-        "description": "The Project of Aliza",
-        "version": "1.1.0",
-        "github_url": "https://github.com/Alizalazar9/My-angular-app"
+        "id": "1",
+        "Owner":"Alizalazar9",
+        "Repo":"My-angular-app"
     }
 ]
