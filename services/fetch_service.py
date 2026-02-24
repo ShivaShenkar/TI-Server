@@ -19,12 +19,47 @@ def update_data():
 def fetch_data():
         update_data()
         db_path = os.path.join(os.path.dirname(__file__), "..", "db", "apps.json")
-        data=[]
+        all_apps_data=[]
         with open(db_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+            all_apps_data = json.load(f)
+        
+
+        for app in all_apps_data:
+            app.versions=[]
+            releases_url = f"https://api.github.com/repos/{app.owner}/{app.repo}/releases"
+            releases_response = requests.get(releases_url)
+
+            if releases_response.status_code == 200: 
+                releases = releases_response.json()
+                for release in releases:
+                    app.versions.append(release.tag_name)
+
+
+                latest_release = app.versions[0]
+                manifest_url = f"https://raw.githubusercontent.com/{app.owner}/{app.repo}/{latest_release}/manifest.json"
+                manifest_response = requests.get(manifest_url)
+                if(manifest_response.status_code == 200):
+                    manifest_data = manifest_response.json()
+                    app.name = manifest_data.name
+                    app.description = manifest_data.description
+                    app.iconUrl = manifest_data.iconUrl
+                    app.exeUrl = manifest_data.exeUrl
+                
+
+
+
+
+
+
         installed_apps = get_installed_apps()
-          
-        for app in data:
+
+
+
+            if response.status_code == 200:
+                releases = response.json()
+                for release in releases:
+                    app.versions.append(release.tag_name)
+
             app.pop("github_url", None)
             app["status"] = "uninstalled"
             app["installedVersion"] = None
