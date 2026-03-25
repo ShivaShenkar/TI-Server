@@ -1,46 +1,47 @@
 
-from app.config import APPS_PATH
 from app.models import ManifestModel
 import os
-from typing import Dict
+from typing import Dict, Self
 
 
 class InstalledApps:
     _instance = None
-    _installed_apps: Dict[str,ManifestModel] = {}
+    _installed_apps: Dict[str, ManifestModel] = {}
 
-    def __new__(cls):
+    def __new__(cls) ->Self:
         if not cls._instance:
             cls._instance = super().__new__(cls)
             print("InstalledApps instance created!")
             cls._instance.update()
 
         return cls._instance
-    
+
     def update(self):
         print("Fetching metadata of installed apps in computer...")
+        from app.config import APPS_PATH
         from app.repositories.filesystem_repo import get_manifest_file
+        import warnings
 
         for id_folder in os.listdir(APPS_PATH):
             try:
                 manifest_data = get_manifest_file(id_folder)
-                manifest_model = ManifestModel.convert_data_to_manifest_model(manifest_data)
+                manifest_model = ManifestModel.convert_data_to_manifest_model(
+                    manifest_data
+                )
                 self._installed_apps[id_folder] = manifest_model
             except Exception as e:
-                print(f"Error fetching metadata of installed app with id: {id_folder}. Error: {e}")
-                continue         
-    
+                warnings.warn(
+                    f"Warning: Failed to fetch metadata of installed app with id: {id_folder}. Message: {e}"
+                )
+                continue
+
+        print("Finished fetching metadata of installed apps.")
 
     def get_installed_apps(self):
         return self._installed_apps
-    
 
-    def get_installed_app(self,app_id:str) ->ManifestModel|None:
+    def get_installed_app(self, app_id: str) -> ManifestModel | None:
         if app_id in self._installed_apps:
             return self._installed_apps[app_id]
         print(f"Couldn't find metadata of installed app with id: {app_id}")
         return None
-
-
-
-

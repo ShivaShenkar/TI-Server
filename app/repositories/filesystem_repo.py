@@ -1,23 +1,23 @@
-
 import sys
 import os
 import json
-from typing import Dict,Any
+from typing import Dict, Any
 from app.models.db_item import DbItem
 
 
-
-def get_main_drive() -> str: 
+def get_main_drive() -> str:
     """Return the main/system drive for the current OS."""
     if sys.platform == "win32":
         return os.environ.get("SystemDrive", "C:") + "\\"
     # macOS (darwin) and Linux use root as the main filesystem
     return "/"
 
-def is_path_file(path:str)->bool:
+
+def is_path_file(path: str) -> bool:
     return os.path.exists(path) and os.path.isfile(path)
 
-def delete_file(path:str)->bool:
+
+def delete_file(path: str) -> bool:
     if not os.path.exists(path) or not os.path.isfile(path):
         return True
     try:
@@ -27,35 +27,42 @@ def delete_file(path:str)->bool:
         print(f"Error occurred while deleting {path}: {e}")
         return False
 
+
 def get_ct_folder() -> str:
     drive = get_main_drive()
     path = os.path.join(drive, "Connectivity-Toolbox")
     if is_path_file(path):
         res = delete_file(path)
         if not res:
-            raise Exception(f"Error: can't get CT folder")
+            raise Exception("Error: can't get CT folder")
     os.makedirs(path, exist_ok=True)
     return path
+
 
 def get_ct_apps_folder() -> str:
     path = os.path.join(get_ct_folder(), "apps")
     if is_path_file(path):
         res = delete_file(path)
         if not res:
-            raise Exception(f"Error: can't get CT apps folder")
+            raise Exception("Error: can't get CT apps folder")
     os.makedirs(path, exist_ok=True)
     return path
 
 
-
-
-def override_db_file(db:Dict[str,DbItem]) -> bool:
+def override_db_file(db: Dict[str, DbItem]) -> bool:
     from app.config import DB_PATH
 
     try:
         with open(DB_PATH, "w", encoding="utf-8") as f:
-            json.dump({id:{"owner":db[id].owner,"repo":db[id].repo} for id in list(db.keys())}
-                       , f, indent=4, ensure_ascii=False)
+            json.dump(
+                {
+                    id: {"owner": db[id].owner, "repo": db[id].repo}
+                    for id in list(db.keys())
+                },
+                f,
+                indent=4,
+                ensure_ascii=False,
+            )
     except:
         return False
     return True
@@ -69,21 +76,22 @@ def get_db_file() -> Any:
             return json.load(f)
     except Exception as e:
         print(f"Error reading {DB_PATH}: {e}")
-    return {}    
+    return {}
 
 
-def get_manifest_file(app_id:str):
+def get_manifest_file(app_id: str):
     from app.config import APPS_PATH
+
     app_folder_path = os.path.join(APPS_PATH, app_id)
     if not os.path.isdir(app_folder_path):
         raise OSError(f"Error: no directory for {app_id} in {APPS_PATH}")
-    
-    #check manifest file
+
+    # check manifest file
     app_manifest_path = os.path.join(app_folder_path, "manifest.json")
     if not os.path.isfile(app_manifest_path):
         raise OSError(f"Error: manifest file not found for app with id {app_id}")
-    
+
     with open(app_manifest_path, "r", encoding="utf-8") as f:
         manifest_data = json.load(f)
-        
+
     return manifest_data
