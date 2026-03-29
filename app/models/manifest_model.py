@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Dict, Any,List
+from typing import Optional, Dict, Any, List, cast
 
 
 @dataclass
@@ -12,12 +12,12 @@ class ManifestModel:
     supportedOS: Dict[str, str]
     iconPath: Optional[str] = None
 
-    def get_supported_os(self) ->List[str]:
+    def get_supported_os(self) -> List[str]:
         return list(self.supportedOS.keys())
 
     @staticmethod
     def convert_data_to_manifest_model(data: Any) -> "ManifestModel":
-        if isinstance(data, "ManifestModel"):
+        if isinstance(data, ManifestModel):
             return data
         if not isinstance(data, dict):
             raise ValueError("Invalid data format: expected item to be a dictionary")
@@ -41,8 +41,8 @@ class ManifestModel:
             raise ValueError(
                 f"Invalid data format: invalid field types in instance: {data}"
             )
-
-        if len(data["supportedOS"].keys()) == 0:
+        supportedOS = cast(Dict[str, str], data["supportedOS"])
+        if len(supportedOS) == 0:
             raise ValueError("Invalid data format: app doesn't have supported OS")
 
         iconPath = None
@@ -54,6 +54,6 @@ class ManifestModel:
             name=data["name"],
             description=data["description"],
             version=data["version"],
-            supportedOS=data["supportedOS"],
+            supportedOS=supportedOS,
             iconPath=iconPath,
         )

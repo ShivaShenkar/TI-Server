@@ -1,4 +1,3 @@
-
 from app.models import ManifestModel
 import os
 from typing import Dict, Self
@@ -8,7 +7,7 @@ class InstalledApps:
     _instance = None
     _installed_apps: Dict[str, ManifestModel] = {}
 
-    def __new__(cls) ->Self:
+    def __new__(cls) -> Self:
         if not cls._instance:
             cls._instance = super().__new__(cls)
             print("InstalledApps instance created!")
@@ -16,7 +15,7 @@ class InstalledApps:
 
         return cls._instance
 
-    def update(self):
+    def update(self) -> None:
         print("Fetching metadata of installed apps in computer...")
         from app.config import APPS_PATH
         from app.repositories.filesystem_repo import get_manifest_file
@@ -37,7 +36,7 @@ class InstalledApps:
 
         print("Finished fetching metadata of installed apps.")
 
-    def get_installed_apps(self):
+    def get_installed_apps(self) -> Dict[str, ManifestModel]:
         return self._installed_apps
 
     def get_installed_app(self, app_id: str) -> ManifestModel | None:

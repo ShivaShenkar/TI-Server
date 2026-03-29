@@ -3,10 +3,8 @@ from flask_restful import Resource
 from app.services.app_service import Apps
 
 
-
-class FetchController(Resource):
-    def get(self):
+class FetchController(Resource):  # type: ignore[misc]
+    def get(self) -> list[str]:
         apps = Apps()
-        appsDict = apps.get_apps()
-        return [app.json() for app in appsDict.values()]
-        
+        apps_dict = apps.get_apps()
+        return [app.json() for app in apps_dict.values()]

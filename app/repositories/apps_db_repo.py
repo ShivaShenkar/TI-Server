@@ -1,12 +1,12 @@
 from app.models import DbItem
-from typing import Dict, Any
+from typing import Dict, Any, Self, cast
 
 
 class AppDb:
     _instance = None
     _db: Dict[str, DbItem]
 
-    def __new__(cls):
+    def __new__(cls) -> Self:
         if not cls._instance:
             cls._instance = super().__new__(cls)
             cls._instance._db = {}
@@ -16,7 +16,7 @@ class AppDb:
 
         return cls._instance
 
-    def update_db(self):
+    def update_db(self) -> None:
         from app.services.http_service import get_http_response
         from app.config import REMOTE_DB_URL
 
@@ -40,7 +40,7 @@ class AppDb:
             print("Database updated successfully!")
             self.save_db_locally()
 
-    def get_db(self):
+    def get_db(self) -> Dict[str, DbItem]:
         return self._db
 
     def get_db_item(self, app_id: str) -> DbItem | None:
@@ -49,8 +49,9 @@ class AppDb:
         print(f"Couldn't find DbItem with id: {app_id} in AppDb")
         return None
 
-    def save_db_locally(self):
+    def save_db_locally(self) -> None:
         from app.repositories.filesystem_repo import override_db_file
+
         print("Saving updated db locally...")
         override_success = override_db_file(self._db)
         if override_success:
@@ -58,7 +59,7 @@ class AppDb:
         else:
             print("Error: Couldn't save db locally")
 
-    def read_local_db(self):
+    def read_local_db(self) -> None:
         print("Parsing local db into AppDb instance..")
         from app.repositories.filesystem_repo import get_db_file
 
@@ -80,8 +81,8 @@ class AppDb:
             raise ValueError("Invalid data format: expected a dictionary of db items")
 
         res: Dict[str, DbItem] = {}
-
-        for key, value in instance.items():
+        instance_dict = cast(Dict[Any, Any], instance)
+        for key, value in instance_dict.items():
             try:
                 if not isinstance(key, str):
                     raise ValueError(

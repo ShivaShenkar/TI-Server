@@ -1,7 +1,7 @@
 import sys
 import os
 import json
-from typing import Dict, Any
+from typing import Dict, Any, cast
 from app.models.db_item import DbItem
 
 
@@ -63,7 +63,7 @@ def override_db_file(db: Dict[str, DbItem]) -> bool:
                 indent=4,
                 ensure_ascii=False,
             )
-    except:
+    except OSError:
         return False
     return True
 
@@ -79,7 +79,7 @@ def get_db_file() -> Any:
     return {}
 
 
-def get_manifest_file(app_id: str):
+def get_manifest_file(app_id: str) -> Dict[str, Any]:
     from app.config import APPS_PATH
 
     app_folder_path = os.path.join(APPS_PATH, app_id)
@@ -92,6 +92,7 @@ def get_manifest_file(app_id: str):
         raise OSError(f"Error: manifest file not found for app with id {app_id}")
 
     with open(app_manifest_path, "r", encoding="utf-8") as f:
-        manifest_data = json.load(f)
+        manifest_data: Any = json.load(f)
+    manifest_data_dict = cast(Dict[str, Any], manifest_data)
 
-    return manifest_data
+    return manifest_data_dict

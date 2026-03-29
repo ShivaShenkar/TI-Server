@@ -1,16 +1,17 @@
-from typing import Dict, Any
+from typing import Dict, Any, cast, List
+from app.models import ReleaseModel
 
 
-def convert_to_releases_model(data: Any) -> Dict[str, Dict[str, str]]:
+def convert_to_releases_model(data: Any) -> Dict[str, ReleaseModel]:
     import warnings
 
-    res: Dict[str, Dict[str, str]] = {}
+    res: Dict[str, ReleaseModel] = {}
     if not isinstance(data, list):
         raise ValueError(
             f"Invalid response format: expected a list of releases. Data: {data}"
         )
-
-    for item in data:
+    data_list = cast(List[Any], data)
+    for item in data_list:
         try:
             if not isinstance(item, dict):
                 raise ValueError("Invalid release data format: expected a dictionary")
@@ -19,9 +20,7 @@ def convert_to_releases_model(data: Any) -> Dict[str, Dict[str, str]]:
                 or "tarball_url" not in item
                 or "zipball_url" not in item
             ):
-                raise ValueError(
-                    "Invalid release data format: missing required fields"
-                )
+                raise ValueError("Invalid release data format: missing required fields")
             if (
                 not isinstance(item["tag_name"], str)
                 or not isinstance(item["tarball_url"], str)
@@ -35,26 +34,21 @@ def convert_to_releases_model(data: Any) -> Dict[str, Dict[str, str]]:
                 f"Warning: couldn't fetch a release in item: {item}, skipping. Message: {e}"
             )
         else:
-            res[item["tag_name"]] = {
-                "zipball_url": item["zipball_url"],
-                "tarball_url": item["tarball_url"],
-            }
+            res[item["tag_name"]] = ReleaseModel(
+                version=item["tag_name"],
+                zipball_url=item["zipball_url"],
+                tarball_url=item["tarball_url"],
+            )
 
     return res
 
 
 class AppReleases:
-    # new instance is created for each app_id
-    # it's like singleton but for each id
     _instances: Dict[str, "AppReleases"] = {}
     _id: str
+    _releases: Dict[str, ReleaseModel]
 
-    # key: app version\tag_name
-    # value: a dictionary with keys of "zipball_url" and "tarball_url"
-    # with matching values
-    _releases: Dict[str, Dict[str, str]]
-
-    def __new__(cls, app_id: str) ->"AppReleases":
+    def __new__(cls, app_id: str) -> "AppReleases":
         if app_id not in cls._instances:
             cls._instances[app_id] = super().__new__(cls)
             cls._instances[app_id]._id = app_id
@@ -63,7 +57,7 @@ class AppReleases:
             cls._instances[app_id].load_releases()
         return cls._instances[app_id]
 
-    def load_releases(self):
+    def load_releases(self) -> None:
         print(f"Loading releases of app with id {self._id}")
         from app.services.http_service import get_http_response
         from app.repositories import AppDb
@@ -89,12 +83,20 @@ class AppReleases:
         else:
             print(f"Loaded releases of app with id {self._id} Successfully!")
 
-    def get_versions_list(self):
+    def get_versions_list(self) -> list[str]:
         return list(self._releases.keys())
 
     def get_latest_version(self) -> str:
         return self.get_versions_list()[0]
 
-    def get_latest_release(self) -> Dict[str, Dict[str, str]]:
+    def get_latest_release(self) -> ReleaseModel:
         latest_version = self.get_latest_version()
-        return {latest_version: self._releases[latest_version]}
+        return self._releases[latest_version]
+
+    def get_release_by_tag(self, tag: str) -> ReleaseModel | None:
+        if tag in self._releases:
+            return self._releases[tag]
+        return None
+
+    def get_all_releases(self) -> list[ReleaseModel]:
+        return list(self._releases.values())
