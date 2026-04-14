@@ -53,7 +53,7 @@ class Apps:
             cls._releases = {}
             cls._installed_apps = InstalledApps()
             print("Apps instance created!")
-            cls._instance.load_apps()
+        cls._instance.load_apps()
         return cls._instance
 
     def load_apps(self) -> None:
@@ -78,11 +78,11 @@ class Apps:
                 continue
 
             # filtering out apps that don't support the user's OS
-            if sys.platform not in app_manifest.supportedOS.keys():
-                warnings.warn(
-                    f"Warning: App with id {id} is not supported for OS: {sys.platform}, App skipped"
-                )
-                continue
+            # if sys.platform not in app_manifest.supportedOS.keys():
+            #     warnings.warn(
+            #         f"Warning: App with id {id} is not supported for OS: {sys.platform}, App skipped"
+            #     )
+            #     continue
 
             # getting app status and installedVersion
             installed_app = self._installed_apps.get_installed_app(id)
@@ -125,3 +125,23 @@ class Apps:
 
     def get_app_by_id(self, app_id: str) -> AppModel:
         return self._apps[app_id]
+
+
+def uninstall_app(app_id: str) -> tuple[bool, str]:
+    """Remove a downloaded app from disk. Returns (success, reason_code)."""
+    import os
+    from app.config import APPS_PATH
+    from app.repositories.filesystem_repo import remove_installed_app_directory
+
+    # Uninstall = delete the app folder under Connectivity-Toolbox/apps, then refresh installed-app cache.
+    if not app_id or "/" in app_id or "\\" in app_id or app_id in (".", ".."):
+        return False, "invalid_id"
+
+    if not os.path.isdir(os.path.join(APPS_PATH, app_id)):
+        return False, "not_installed"
+
+    if not remove_installed_app_directory(app_id):
+        return False, "removal_failed"
+
+    InstalledApps().update()
+    return True, "ok"

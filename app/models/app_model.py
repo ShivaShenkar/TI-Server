@@ -14,17 +14,16 @@ class AppModel:
     installedVersion: Optional[str] = None
     iconPath: Optional[str] = None
 
-    @classmethod
-    def json(cls) -> str:
+    def json(self) -> str:
         return json.dumps(
             {
-                "id": cls.id,
-                "name": cls.name,
-                "description": cls.description,
-                "versions": cls.versions,
-                "status": cls.status,
-                "supportedOS": cls.supportedOS,
-                "installedVersion": cls.installedVersion,
-                "iconPath": cls.iconPath,
+                "id": self.id,
+                "name": self.name,
+                "description": self.description,
+                "versions": self.versions,
+                "status": self.status,
+                "supportedOS": self.supportedOS,
+                "installedVersion": self.installedVersion,
+                "iconPath": self.iconPath,
             }
         )

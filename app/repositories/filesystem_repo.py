@@ -1,6 +1,7 @@
 import sys
 import os
 import json
+import shutil
 from typing import Dict, Any, cast
 from app.models.db_item import DbItem
 
@@ -96,3 +97,27 @@ def get_manifest_file(app_id: str) -> Dict[str, Any]:
     manifest_data_dict = cast(Dict[str, Any], manifest_data)
 
     return manifest_data_dict
+
+
+def remove_installed_app_directory(app_id: str) -> bool:
+    """Delete the install folder for app_id under APPS_PATH. Returns False if missing or unsafe."""
+    from app.config import APPS_PATH
+
+    # Reject traversal in app_id; ensure resolved path stays inside APPS_PATH before deleting.
+    if not app_id or "/" in app_id or "\\" in app_id or app_id in (".", ".."):
+        return False
+    target = os.path.abspath(os.path.join(APPS_PATH, app_id))
+    apps_root = os.path.abspath(APPS_PATH)
+    try:
+        if os.path.commonpath([target, apps_root]) != apps_root:
+            return False
+    except ValueError:
+        return False
+    if not os.path.isdir(target):
+        return False
+    try:
+        shutil.rmtree(target)
+    except OSError as e:
+        print(f"Error removing installed app directory {target}: {e}")
+        return False
+    return True

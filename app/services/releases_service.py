@@ -54,7 +54,7 @@ class AppReleases:
             cls._instances[app_id]._id = app_id
             cls._instances[app_id]._releases = {}
             print(f"Created new AppReleases instance for app with id: {app_id}!")
-            cls._instances[app_id].load_releases()
+        cls._instances[app_id].load_releases()
         return cls._instances[app_id]
 
     def load_releases(self) -> None:

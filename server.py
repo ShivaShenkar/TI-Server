@@ -1,4 +1,4 @@
-from app.controllers import FetchController
+from app.controllers import FetchController, UninstallController
 from flask import Flask, jsonify, wrappers
 from flask_restful import Api
 from flask_cors import CORS
@@ -8,6 +8,7 @@ api = Api(app)
 CORS(app)
 
 api.add_resource(FetchController, "/api/fetch-data")
+api.add_resource(UninstallController, "/api/uninstall-app/<string:app_id>")
 
 
 @app.route("/", methods=["GET"])  # type: ignore
