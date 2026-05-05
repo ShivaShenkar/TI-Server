@@ -169,7 +169,9 @@ def install_zip_file(app_id:str,zip_url:str)->tuple[bool,int]:
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             for member in zip_ref.infolist():
                 name_parts = member.filename.split("/", 1)
-                if len(name_parts) > 1:
+                if name_parts[1] is not "":
+                    print(f"filename: {member.filename}")
+                    print(f"name_parts: {name_parts}")
                     member.filename = name_parts[1]  # strip top folder
 
                     #checks for path traversal security issue.
