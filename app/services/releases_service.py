@@ -76,6 +76,7 @@ class AppReleases:
             response = get_http_response(releases_url)
             response_data = response.json()
             self._releases = convert_to_releases_model(response_data)
+            print(self._releases.keys())
         except Exception as e:
             print(
                 f"Error: Failed to load releases of app with id {self._id}. Message: {e} "
