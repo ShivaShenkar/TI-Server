@@ -42,6 +42,12 @@ class ManifestModel:
                 f"Invalid data format: invalid field types in instance: {data}"
             )
         supportedOS = cast(Dict[str, str], data["supportedOS"])
+        supportedOS = {
+            osKey:pathValue 
+                       for osKey,pathValue in supportedOS.items() 
+                       if osKey in ["windows","linux","macos"]
+            }
+
         if len(supportedOS) == 0:
             raise ValueError("Invalid data format: app doesn't have supported OS")
 
