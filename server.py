@@ -1,4 +1,9 @@
-from app.controllers import FetchController, UninstallController
+from app.controllers import (
+    FetchController,
+    InstallController,
+    UninstallController,
+    UpdateController,
+)
 from flask import Flask, jsonify, wrappers
 from flask_restful import Api
 from flask_cors import CORS
@@ -8,7 +13,9 @@ api = Api(app)
 CORS(app)
 
 api.add_resource(FetchController, "/api/fetch-data")
+api.add_resource(InstallController, "/api/install-app/<string:app_id>/<string:version>")
 api.add_resource(UninstallController, "/api/uninstall-app/<string:app_id>")
+api.add_resource(UpdateController, "/api/update-app/<string:app_id>/<string:version>")
 
 
 @app.route("/", methods=["GET"])  # type: ignore

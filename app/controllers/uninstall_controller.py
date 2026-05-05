@@ -1,20 +1,24 @@
-from typing import Tuple
-
-from flask import Response, jsonify
+from typing import Dict, Tuple
 from flask_restful import Resource
 
-from app.services.app_service import uninstall_app
+from app.services.app_service import Apps
 
 
 # HTTP entry for uninstall: delegates to the service and turns result codes into status + JSON.
 class UninstallController(Resource):  # type: ignore[misc]
-    def delete(self, app_id: str) -> Tuple[Response, int] | Response:
-        ok, code = uninstall_app(app_id)
+    def _run_uninstall(self, app_id: str) -> Tuple[Dict[str, object], int]:
+        status, code = Apps().uninstall_app(app_id)
         # Map business outcome to HTTP (body is always JSON for the client).
-        if ok:
-            return jsonify(success=True, message="App uninstalled"), 200
-        if code == "invalid_id":
-            return jsonify(success=False, error="Invalid app id"), 400
-        if code == "not_installed":
-            return jsonify(success=False, error="App is not installed"), 404
-        return jsonify(success=False, error="Could not remove app files"), 500
+        if status:
+            message = "App uninstalled successfully"
+        else:
+            message = "App not found" if code == 400 else "App is not installed" if code == 404 else "Could not remove app files"
+            
+        return {"success": status, "message": message}, code
+
+
+    def get(self, app_id: str) -> Tuple[Dict[str, object], int]:
+        return self._run_uninstall(app_id)
+
+    def delete(self, app_id: str) -> Tuple[Dict[str, object], int]:
+        return self._run_uninstall(app_id)

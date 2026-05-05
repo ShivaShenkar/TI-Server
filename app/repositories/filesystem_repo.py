@@ -2,6 +2,8 @@ import sys
 import os
 import json
 import shutil
+import zipfile
+import tempfile
 from typing import Dict, Any, cast
 from app.models.db_item import DbItem
 
@@ -99,25 +101,88 @@ def get_manifest_file(app_id: str) -> Dict[str, Any]:
     return manifest_data_dict
 
 
-def remove_installed_app_directory(app_id: str) -> bool:
+def remove_installed_app_directory(app_id: str) -> tuple[bool, int]:
     """Delete the install folder for app_id under APPS_PATH. Returns False if missing or unsafe."""
+    print(f"Removing installed app directory {app_id}...")
     from app.config import APPS_PATH
+    
 
-    # Reject traversal in app_id; ensure resolved path stays inside APPS_PATH before deleting.
-    if not app_id or "/" in app_id or "\\" in app_id or app_id in (".", ".."):
-        return False
-    target = os.path.abspath(os.path.join(APPS_PATH, app_id))
-    apps_root = os.path.abspath(APPS_PATH)
-    try:
-        if os.path.commonpath([target, apps_root]) != apps_root:
-            return False
-    except ValueError:
-        return False
+    if app_id=="." or app_id=="..":
+        return False, 400
+
+    target = os.path.join(APPS_PATH, app_id)
     if not os.path.isdir(target):
-        return False
+        print(f"App {app_id} is not installed")
+        return True, 200
     try:
-        shutil.rmtree(target)
+        shutil.rmtree(target)        
     except OSError as e:
         print(f"Error removing installed app directory {target}: {e}")
-        return False
-    return True
+        return False, 500
+    print(f"App {app_id} removed successfully!")
+    return True, 200
+
+def install_tar_file(app_id:str,tar_url:str)->tuple[bool,int]:
+    print(f"Installing tar file for app {app_id} from {tar_url} ...")
+    from app.config import APPS_PATH
+    import requests
+    import tarfile
+
+    target_path = os.abspath(os.path.join(APPS_PATH, app_id))
+    os.makedirs(target_path, exist_ok=True)
+    try:
+        with requests.get(tar_url,stream=True) as r:
+            r.raise_for_status()
+            with tarfile.open(fileobj=r.raw, mode="r|*") as tar:
+                for member in tar:
+                    if member.name.count("/") > 0:
+                        member.name = member.name.split("/", 1)[1]  # strip top folder
+                        #checks for path traversal security issue.
+                        member_path = os.path.abspath(os.path.join(target_path, member.name))
+                        if not member_path.startswith(target_path):
+                            raise OSError(f"Error: {member.name} contains unsafe path")
+                        tar.extract(member, path=target_path)
+
+    except Exception as e:
+        print(f"Error extracting tar file from {tar_url}: {e}")
+        return False,500
+    print(f"tar file installed successfully!")
+    return True,200
+
+
+def install_zip_file(app_id:str,zip_url:str)->tuple[bool,int]:
+    print(f"Installing zip file for app {app_id} from {zip_url} ...")
+    from app.config import APPS_PATH
+    import requests
+    import zipfile
+
+    target_path = os.path.abspath(os.path.join(APPS_PATH, app_id))
+    zip_path = os.path.join(target_path, "app.zip")
+    os.makedirs(target_path, exist_ok=True)
+    try:
+        with requests.get(zip_url, stream=True) as r:
+            r.raise_for_status()
+            with open(zip_path, "wb") as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            for member in zip_ref.infolist():
+                name_parts = member.filename.split("/", 1)
+                if len(name_parts) > 1:
+                    member.filename = name_parts[1]  # strip top folder
+
+                    #checks for path traversal security issue.
+                    member_path = os.path.abspath(os.path.join(target_path, member.filename))
+                    if not member_path.startswith(target_path):
+                        raise OSError(f"Error: {member.filename} contains unsafe path")
+
+                    zip_ref.extract(member, target_path)
+        os.remove(zip_path)
+    except Exception as e:
+        print(f"Error extracting zip file from {zip_url}: {e}")
+        return False,500
+    print(f"Zip file installed successfully!")
+    return True,200 
+
+
