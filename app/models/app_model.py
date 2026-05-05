@@ -1,16 +1,21 @@
 from dataclasses import dataclass
-from typing import List, Literal, Optional
+from typing import Dict, List, Literal, Optional
 import json
 
-
+"""
+Model for rendering all needed data to client.
+"""
 @dataclass
 class AppModel:
     id: str
     name: str
     description: str
-    versions: List[str]
+    # versions: List[str]
+    
+    # key is version, value is list of supported OSes
+    versions:Dict[str,List[str]]
     status: Literal["not installed", "update available", "up to date"]
-    supportedOS: List[str]
+    # supportedOS: List[str]
     installedVersion: Optional[str] = None
     iconPath: Optional[str] = None
 
@@ -22,7 +27,7 @@ class AppModel:
                 "description": self.description,
                 "versions": self.versions,
                 "status": self.status,
-                "supportedOS": self.supportedOS,
+                # "supportedOS": self.supportedOS,
                 "installedVersion": self.installedVersion,
                 "iconPath": self.iconPath,
             }

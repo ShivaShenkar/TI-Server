@@ -40,6 +40,7 @@ def get_app_status(
 class Apps:
 
     _instance = None
+    # key is app id, value is AppModel
     _apps: Dict[str, AppModel]
     _db: AppDb
     _installed_apps: InstalledApps
@@ -65,17 +66,35 @@ class Apps:
         for id in db_dict.keys():
             # getting app versions
             self._releases[id] = AppReleases(id)
-            latest_version = self._releases[id].get_latest_version()
+            releases_versions = self._releases[id].get_versions_list()
 
-            # getting app name,description,supportedOS,iconPath
-            app_manifest = get_app_manifest(id, latest_version)
+            # # if couldn't fetch manifest, app wouldn't be sent to client
+            # if not app_manifest:
+            #     warnings.warn(
+            #         f"Warning: Couldn't fetch manifest from latest version of app with id {id}, App skipped"
+            #     )
+            #     continue
+            versions_os_dict:Dict[str,List[str]]={}
 
-            # if couldn't fetch manifest, app wouldn't be sent to client
-            if not app_manifest:
-                warnings.warn(
-                    f"Warning: Couldn't fetch manifest from latest version of app with id {id}, App skipped"
-                )
-                continue
+            #flag to check the latest supported Version of app
+            latest_flag = False
+            for r_version in releases_versions:
+                version_manifest = get_app_manifest(id, r_version)
+                if not version_manifest:
+                    warnings.warn(
+                        f"Warning: Couldn't fetch manifest from version {r_version} of app with id {id}, version skipped"
+                    )
+                    continue
+                if version_manifest.version != r_version:
+                    warnings.warn(
+                        f"Warning: conflicting versions of app with id {id}, version skipped"
+                    )
+                    continue
+                if not latest_flag:
+                    latest_flag = True
+                    latest_app_manifest = version_manifest
+                versions_os_dict[r_version] = version_manifest.get_supported_os()
+
 
             # filtering out apps that don't support the user's OS
             # if sys.platform not in app_manifest.supportedOS.keys():
@@ -87,21 +106,21 @@ class Apps:
             # getting app status and installedVersion
             installed_app = self._installed_apps.get_installed_app(id)
             status = get_app_status(
-                installed_app=installed_app, latest_app=app_manifest
+                installed_app=installed_app, latest_app=latest_app_manifest
             )
             installed_version = None
             if installed_app:
                 installed_version = installed_app.version
 
+
             self._apps[id] = AppModel(
                 id=id,
-                name=app_manifest.name,
-                description=app_manifest.description,
-                versions=self._releases[id].get_versions_list(),
+                name=latest_app_manifest.name,
+                description=latest_app_manifest.description,
+                versions=versions_os_dict,
                 status=status,
-                supportedOS=app_manifest.get_supported_os(),
                 installedVersion=installed_version,
-                iconPath=app_manifest.iconPath,
+                iconPath=latest_app_manifest.iconPath,
             )
         print("Finished loading details for all apps")
 

@@ -35,7 +35,7 @@ def convert_to_releases_model(data: Any) -> Dict[str, ReleaseModel]:
             )
         else:
             res[item["tag_name"]] = ReleaseModel(
-                version=item["tag_name"],
+                # version=item["tag_name"],
                 zipball_url=item["zipball_url"],
                 tarball_url=item["tarball_url"],
             )
