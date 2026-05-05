@@ -94,7 +94,7 @@ class AppReleases:
         return self._releases[latest_version]
 
     def get_release_by_tag(self, tag: str) -> ReleaseModel | None:
-        if tag in self._releases:
+        if tag in self._releases.keys():
             return self._releases[tag]
         return None
 

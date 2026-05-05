@@ -127,21 +127,56 @@ class Apps:
         return self._apps[app_id]
 
 
-def uninstall_app(app_id: str) -> tuple[bool, str]:
-    """Remove a downloaded app from disk. Returns (success, reason_code)."""
-    import os
-    from app.config import APPS_PATH
-    from app.repositories.filesystem_repo import remove_installed_app_directory
+    def uninstall_app(self, app_id: str) -> tuple[bool, int]:
+        """Remove a downloaded app from disk. Returns (success, reason_code)."""
+        from app.config import APPS_PATH
+        from app.repositories.filesystem_repo import remove_installed_app_directory
 
-    # Uninstall = delete the app folder under Connectivity-Toolbox/apps, then refresh installed-app cache.
-    if not app_id or "/" in app_id or "\\" in app_id or app_id in (".", ".."):
-        return False, "invalid_id"
+        # Uninstall = delete the app folder under Connectivity-Toolbox/apps, then refresh installed-app cache.
+        if not self._db.get_db_item(app_id):
+            return False, 400
 
-    if not os.path.isdir(os.path.join(APPS_PATH, app_id)):
-        return False, "not_installed"
+        status, code = remove_installed_app_directory(app_id)
 
-    if not remove_installed_app_directory(app_id):
-        return False, "removal_failed"
+        if status:
+            self.update()
+        return status,code
+        
 
-    InstalledApps().update()
-    return True, "ok"
+
+    def install_app_version(self, app_id: str, version: str) -> tuple[bool, int]:
+        import sys
+        """Install a specific app release tag from GitHub. Returns (success, reason_code)."""
+        print(f"Installing app with id {app_id} with version {version}...")
+
+        self.uninstall_app(app_id)
+        from app.config import APPS_PATH
+        from app.repositories.filesystem_repo import install_zip_file, install_tar_file
+        
+        if not self._db.get_db_item(app_id):
+            return False, 400
+
+        releases:AppReleases = self._releases[app_id]
+        release:ReleaseModel|None = releases.get_release_by_tag(version)
+
+        if not release:
+            return False, 404
+        if sys.platform == "win32":
+            status, code = install_zip_file(app_id,release.zipball_url)
+        
+        else:
+            status, code = install_tar_file(app_id,release.tarball_url)
+        if status:
+            self.update()
+        return status, code
+
+    # def update_app(app_id: str, version: str) -> tuple[bool, str]:
+    #     """Replace current installed app with requested version. Returns (success, reason_code)."""
+    #     ok, code = uninstall_app(app_id)
+    #     if not ok:
+    #         return False, code
+
+    #     ok, code = install_app_version(app_id, version)
+    #     if not ok:
+    #         return False, code
+    #     return True, "ok"
