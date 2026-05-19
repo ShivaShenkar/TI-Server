@@ -127,8 +127,8 @@ def install_tar_file(app_id:str,tar_url:str)->tuple[bool,int]:
     from app.config import APPS_PATH
     import requests
     import tarfile
-
-    target_path = os.abspath(os.path.join(APPS_PATH, app_id))
+    
+    target_path = os.path.abspath(os.path.join(APPS_PATH, app_id))
     os.makedirs(target_path, exist_ok=True)
     try:
         with requests.get(tar_url,stream=True) as r:
@@ -169,7 +169,7 @@ def install_zip_file(app_id:str,zip_url:str)->tuple[bool,int]:
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             for member in zip_ref.infolist():
                 name_parts = member.filename.split("/", 1)
-                if name_parts[1] is not "":
+                if name_parts[1] != "":
                     print(f"filename: {member.filename}")
                     print(f"name_parts: {name_parts}")
                     member.filename = name_parts[1]  # strip top folder

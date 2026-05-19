@@ -3,7 +3,7 @@ from typing import Dict
 
 
 @dataclass
-class ReleaseModel:
+class ReleaseURLs:
     # version: str
     zipball_url: str
     tarball_url: str
