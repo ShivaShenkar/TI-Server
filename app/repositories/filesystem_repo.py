@@ -2,11 +2,11 @@ import sys
 import os
 import json
 import shutil
-import zipfile
-import tempfile
 from typing import Dict, Any, cast
 from app.models.db_item import DbItem
+import threading
 
+data_lock = threading.Lock()
 
 def get_main_drive() -> str:
     """Return the main/system drive for the current OS."""
@@ -54,21 +54,21 @@ def get_ct_apps_folder() -> str:
 
 def override_db_file(db: Dict[str, DbItem]) -> bool:
     from app.config import DB_PATH
-
-    try:
-        with open(DB_PATH, "w", encoding="utf-8") as f:
-            json.dump(
-                {
-                    id: {"owner": db[id].owner, "repo": db[id].repo}
-                    for id in list(db.keys())
-                },
-                f,
-                indent=4,
-                ensure_ascii=False,
-            )
-    except OSError:
-        return False
-    return True
+    with data_lock:
+        try:
+            with open(DB_PATH, "w", encoding="utf-8") as f:
+                json.dump(
+                    {
+                        id: {"owner": db[id].owner, "repo": db[id].repo}
+                        for id in list(db.keys())
+                    },
+                    f,
+                    indent=4,
+                    ensure_ascii=False,
+                )
+        except OSError:
+            return False
+        return True
 
 
 def get_db_file() -> Any:
