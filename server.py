@@ -4,6 +4,7 @@ from app.controllers import (
     InstallController,
     RunController,
     RunStatusController,
+    ShutdownController,
     UninstallController,
     UpdateController,
 )
@@ -22,6 +23,7 @@ api.add_resource(RunController, "/api/run-app/<string:app_id>")
 api.add_resource(RunStatusController, "/api/run-status/<string:app_id>")
 api.add_resource(UninstallController, "/api/uninstall-app/<string:app_id>")
 api.add_resource(UpdateController, "/api/update-app/<string:app_id>/<string:version>")
+api.add_resource(ShutdownController, "/api/shutdown")
 
 
 @app.route("/", methods=["GET"])  # type: ignore
@@ -30,4 +32,5 @@ def hello() -> wrappers.Response:
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # use_reloader=False so /api/shutdown can exit the process (reloader respawns the child)
+    app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
