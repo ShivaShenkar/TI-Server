@@ -236,7 +236,7 @@ class Apps:
         if not device_os:
             warnings.warn(f"Warning: App with id {app_id} doesn't have supported OS")
             return None
-        relative_exe_path = installed_manifest.supportedOS.get(device_os)
+        relative_exe_path = installed_manifest.get('supportedOS', {}).get(device_os)
 
         print(relative_exe_path)
         full_exe_path = os.path.abspath(
