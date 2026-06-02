@@ -260,7 +260,7 @@ class Apps:
     def run_app(self, app_id: str) -> tuple[bool, int]:
         print(f"Running app with id {app_id} ...")
 
-        if not self._installed_apps.get_installed_app(app_id):
+        if not self._installed_apps.get_installed_version(app_id):
             print(f"Couldn't find installed app with id {app_id}")
             return False, 400
 
