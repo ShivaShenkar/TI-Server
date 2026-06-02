@@ -228,7 +228,7 @@ class Apps:
         from app.config import APPS_PATH
         import warnings
 
-        installed_manifest = self._installed_apps.get_installed_app(app_id)
+        installed_manifest = self._installed_apps.get_installed_version(app_id)
         if not installed_manifest:
             return None
 

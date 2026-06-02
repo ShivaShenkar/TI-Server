@@ -4,7 +4,9 @@ from app.controllers import (
     InstallController,
     RunController,
     RunStatusController,
+    ShutdownCancelController,
     ShutdownController,
+    ShutdownScheduleController,
     UninstallController,
     UpdateController,
 )
@@ -24,6 +26,8 @@ api.add_resource(RunStatusController, "/api/run-status/<string:app_id>")
 api.add_resource(UninstallController, "/api/uninstall-app/<string:app_id>")
 api.add_resource(UpdateController, "/api/update-app/<string:app_id>/<string:version>")
 api.add_resource(ShutdownController, "/api/shutdown")
+api.add_resource(ShutdownScheduleController, "/api/shutdown/schedule")
+api.add_resource(ShutdownCancelController, "/api/shutdown/cancel")
 
 
 @app.route("/", methods=["GET"])  # type: ignore
