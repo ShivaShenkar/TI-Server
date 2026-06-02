@@ -155,6 +155,12 @@ class Apps:
     def get_app_by_id(self, app_id: str) -> AppModel:
         return self._apps[app_id]
 
+    def check_app_in_db(self, app_id: str) -> bool:
+        if self._db.get_db_item(app_id) is not None:
+            return True
+        if len(self._db.get_db()) == 0:
+            self._db.update_db()
+        return self._db.get_db_item(app_id) is not None
 
     def uninstall_app(self, app_id: str) -> tuple[bool, int]:
         """Remove a downloaded app from disk. Returns (success, reason_code)."""
@@ -296,7 +302,9 @@ class Apps:
         return True, 200
 
     def is_app_running(self, app_id: str) -> tuple[bool, int]:
-        if not self.check_app_in_db(app_id):
+        if not self.check_app_in_db(app_id) and not self._installed_apps.get_installed_version(
+            app_id
+        ):
             return False, 400
         self._cleanup_if_closed(app_id)
         return app_id in self._running_processes, 200
