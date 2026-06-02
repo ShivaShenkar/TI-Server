@@ -124,7 +124,7 @@ class Apps:
                 id=app_id,
                 name=latest_app_manifest.name,
                 description=latest_app_manifest.description,
-                versions=None,
+                versions=list(self._releases[app_id]._releases.keys()),
                 status=get_app_status(self._installed_apps.get_installed_version(app_id), list(self._releases[app_id]._releases.keys())[0]),
                 installedVersion=self._installed_apps.get_installed_version(app_id),
                 iconPath=latest_app_manifest.iconPath,
