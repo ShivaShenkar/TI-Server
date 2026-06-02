@@ -226,17 +226,27 @@ class Apps:
 
     def _get_app_executable_path(self, app_id: str) -> str | None:
         from app.config import APPS_PATH
+        from app.repositories.filesystem_repo import get_manifest_file
         import warnings
 
-        installed_manifest = self._installed_apps.get_installed_version(app_id)
-        if not installed_manifest:
+        try:
+            installed_manifest = get_manifest_file(app_id)
+        except Exception as e:
+            warnings.warn(
+                f"Warning: failed to read manifest for installed app with id {app_id}. Message: {e}"
+            )
             return None
 
         device_os = self._get_os()
         if not device_os:
             warnings.warn(f"Warning: App with id {app_id} doesn't have supported OS")
             return None
-        relative_exe_path = installed_manifest.get('supportedOS', {}).get(device_os)
+        relative_exe_path = installed_manifest.get("supportedOS", {}).get(device_os)
+        if not isinstance(relative_exe_path, str) or len(relative_exe_path) == 0:
+            warnings.warn(
+                f"Warning: App with id {app_id} is missing executable path for OS {device_os}"
+            )
+            return None
 
         print(relative_exe_path)
         full_exe_path = os.path.abspath(
