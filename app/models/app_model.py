@@ -10,10 +10,6 @@ class AppModel:
     id: str
     name: str
     description: str
-
-    # key is version, value is list of supported OSes
-    # versions:Dict[str,List[str]] |None
-
     # versions: List[str]
     versions: List[str] | None
     status: Literal["not installed", "update available", "up to date"]

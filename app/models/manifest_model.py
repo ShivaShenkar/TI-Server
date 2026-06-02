@@ -7,8 +7,7 @@ class ManifestModel:
     name: str
     description: str
     version: str
-    # key is OS
-    # value is path for exe file of matching OS
+    # key is OS, value is path for exe file of matching OS
     supportedOS: Dict[str, str]
     iconPath: Optional[str] = None
 

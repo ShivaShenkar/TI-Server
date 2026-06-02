@@ -74,8 +74,7 @@ class AppDb:
             print("Parsed local db successfully!")
     """
 
-    # converting valid values in dict to DbItems
-    # invalid items won't be returned
+    # converting valid values in dict to DbItems, invalid items won't be returned
     def convert_dict_to_db(self,instance: Any) -> Dict[str, DbItem]:
         import warnings
 

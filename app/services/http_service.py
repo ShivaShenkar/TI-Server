@@ -1,4 +1,4 @@
-import requests  # type: ignore
+import requests  
 
 
 def get_http_response(url: str) -> requests.Response:
