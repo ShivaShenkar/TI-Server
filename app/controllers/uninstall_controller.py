@@ -6,8 +6,8 @@ from flask_restful import Resource
 
 class UninstallController(Resource):  # type: ignore[misc]
     def _run_uninstall(self, app_id: str) -> Tuple[Dict[str, object], int]:
-        status, code = Apps().uninstall_app(app_id)
-        if status:
+        success, code = Apps().uninstall_app(app_id)
+        if success:
             message = "App uninstalled successfully"
         else:
             message = (
@@ -18,7 +18,7 @@ class UninstallController(Resource):  # type: ignore[misc]
                 else "Could not remove app files"
             )
 
-        return {"success": status, "message": message}, code
+        return {"success": success, "message": message}, code
 
 
     def get(self, app_id: str) -> Tuple[Dict[str, object], int]:

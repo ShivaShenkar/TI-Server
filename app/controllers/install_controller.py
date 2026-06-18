@@ -6,9 +6,9 @@ from flask_restful import Resource
 
 class InstallController(Resource):  # type: ignore[misc]
     def get(self, app_id: str, version: str) -> Tuple[Dict[str, object], int]:
-        status, code = Apps().install_app_version(app_id, version)
+        success, code = Apps().install_app_version(app_id, version)
 
-        if status:
+        if success:
             message = "App installed successfully"
         else:
             message = (
@@ -17,4 +17,4 @@ class InstallController(Resource):  # type: ignore[misc]
                 else "Could not install app"
             )
 
-        return {"success": status, "message": message}, code
+        return {"success": success, "message": message}, code

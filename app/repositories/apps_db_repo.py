@@ -55,7 +55,7 @@ class AppDb:
         print("Saving updated db locally...")
         override_success = override_db_file(self._db)
         if override_success:
-            print("Database was successfully saved locally")
+            print("Database was successfully saved locally!")
         else:
             print("Error: Couldn't save db locally")
     

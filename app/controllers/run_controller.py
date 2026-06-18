@@ -1,6 +1,6 @@
 from typing import Dict, Tuple
 from flask_restful import Resource
-
+from app.models.ws_message import WSMessage
 from app.services.app_service import Apps
 
 
@@ -23,11 +23,12 @@ class RunController(Resource):  # type: ignore[misc]
         return {"success": status, "message": message}, code
 
 
-class RunStatusController(Resource):  # type: ignore[misc]
-    def get(self, app_id: str) -> Tuple[Dict[str, object], int]:
+class RunStatusPollController(Resource):  # type: ignore[misc]
+    def get(self, app_id: str) -> Tuple[WSMessage,int]:
         running, code = Apps().is_app_running(app_id)
         if code == 400:
-            return {"success": False, "message": "App not found", "running": False}, code
+            return WSMessage('app-stopped',app_id), code
 
-        message = "App is running" if running else "App is not running"
-        return {"success": True, "message": message, "running": running}, code
+        message = 'app-running' if running else 'app-stopped'
+        return  WSMessage(message,app_id), code
+    

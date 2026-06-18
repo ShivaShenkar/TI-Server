@@ -1,7 +1,8 @@
 from .fetch_controller import FetchController
 from .fetch_by_id_controller import FetchByIdController
 from .install_controller import InstallController
-from .run_controller import RunController, RunStatusController
+from .run_controller import RunController, RunStatusPollController
+from .stop_controller import StopController
 from .shutdown_controller import (
     ShutdownCancelController,
     ShutdownController,
@@ -14,8 +15,9 @@ __all__ = [
     "FetchController",
     "FetchByIdController",
     "InstallController",
+    "StopController",
     "RunController",
-    "RunStatusController",
+    "RunStatusPollController",
     "ShutdownController",
     "ShutdownScheduleController",
     "ShutdownCancelController",
