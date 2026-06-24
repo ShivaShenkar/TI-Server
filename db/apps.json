@@ -4,7 +4,11 @@
         "repo": "My-angular-app"
     },
     "2":{
-        "owner": "Shivashenkar",
+        "owner": "TI-Connectivity-Toolbox-Org",
         "repo": "Lior-python"
+    },
+    "3":{
+        "owner": "TI-Connectivity-Toolbox-Org",
+        "repo": "Ti-weather-app"
     }
 }
