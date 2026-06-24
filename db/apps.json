@@ -10,5 +10,9 @@
     "3":{
         "owner": "TI-Connectivity-Toolbox-Org",
         "repo": "Ti-weather-app"
+    },
+    "4":{
+        "owner": "TI-Connectivity-Toolbox-Org",
+        "repo": "Snake-game"
     }
 }
