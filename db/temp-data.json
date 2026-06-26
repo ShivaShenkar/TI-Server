@@ -1,0 +1,68 @@
+{
+    "1": {
+        "id": "1",
+        "name": "Aliza's app",
+        "description": "Imagine having an app-store application inside an app-store application. You don't need to Imagine anymore",
+        "latestVersion": "V5.0.0",
+        "versions": [
+            "V5.0.0",
+            "V4.0.0",
+            "V3.0.0",
+            "V2.0.0",
+            "V1.0.0"
+        ],
+        "status": "update available",
+        "supportedOS": {
+            "windows": "dist/alizas-app/alizas-app.exe"
+        },
+        "installedVersion": "V3.0.0",
+        "iconUrl": null
+    },
+    "2": {
+        "id": "2",
+        "name": "Lior's python language",
+        "description": "Lior basically created python,he's the goat",
+        "latestVersion": "V1.0.0",
+        "versions": [
+            "V1.0.0"
+        ],
+        "status": "up to date",
+        "supportedOS": {
+            "windows": "py.exe"
+        },
+        "installedVersion": "V1.0.0",
+        "iconUrl": null
+    },
+    "3": {
+        "id": "3",
+        "name": "Weather App",
+        "description": "A simple angular weather app made by Lior",
+        "latestVersion": "v1.0.2",
+        "versions": [
+            "v1.0.2",
+            "v1.0.1",
+            "v1.0.0"
+        ],
+        "status": "up to date",
+        "supportedOS": {
+            "windows": "dist/weather-app.exe"
+        },
+        "installedVersion": "v1.0.2",
+        "iconUrl": null
+    },
+    "4": {
+        "id": "4",
+        "name": "Snake",
+        "description": "Yep, that's right. It's the snake game",
+        "latestVersion": "v1.0.0",
+        "versions": [
+            "v1.0.0"
+        ],
+        "status": "up to date",
+        "supportedOS": {
+            "windows": "TinySnake.x64.exe"
+        },
+        "installedVersion": "v1.0.0",
+        "iconUrl": null
+    }
+}

@@ -2,9 +2,9 @@
 Flask==3.0.3
 Flask-RESTful==0.3.10
 Flask-Cors==4.0.1
-Flask-Sock==0.7.0
-werkzeug==3.0.6
-simple-websocket==0.10.1
+
+# WebSocket server (standalone, separate from Flask)
+websockets>=14.0
 
 # HTTP client (used by app/services/http_service.py)
 requests==2.32.3
@@ -17,3 +17,4 @@ black==24.4.2
 ruff==0.5.0
 mypy==1.10.0
 pre-commit==3.7.1
+

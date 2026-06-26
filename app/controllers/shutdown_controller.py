@@ -4,12 +4,15 @@ from typing import Dict, Tuple
 
 from flask_restful import Resource
 
+from app.services.app_service import Apps
+
 _shutdown_lock = threading.RLock()
 _pending_shutdown_timer: threading.Timer | None = None
 _shutdown_delay_seconds = 8.0
 
 
 def _shutdown_now() -> None:
+    Apps().delete_temp_file()
     os._exit(0)
 
 
@@ -26,7 +29,9 @@ def _schedule_delayed_shutdown() -> None:
     with _shutdown_lock:
         if _pending_shutdown_timer is not None:
             _pending_shutdown_timer.cancel()
-        _pending_shutdown_timer = threading.Timer(_shutdown_delay_seconds, _shutdown_now)
+        _pending_shutdown_timer = threading.Timer(
+            _shutdown_delay_seconds, _shutdown_now
+        )
         _pending_shutdown_timer.start()
 
 
@@ -34,7 +39,7 @@ class ShutdownController(Resource):  # type: ignore[misc]
     """Stops only the Flask backend. Apps launched via Run keep running."""
 
     def _shutdown(self) -> Tuple[Dict[str, object], int]:
-        threading.Timer(0.5, lambda: os._exit(0)).start()
+        threading.Timer(0.5, lambda: _shutdown_now).start()
         return {"success": True, "message": "Server shutting down"}, 200
 
     def get(self) -> Tuple[Dict[str, object], int]:
