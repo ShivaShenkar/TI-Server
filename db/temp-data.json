@@ -22,16 +22,17 @@
         "id": "2",
         "name": "Lior's python language",
         "description": "Lior basically created python,he's the goat",
-        "latestVersion": "V1.0.0",
+        "latestVersion": "V2.0.0",
         "versions": [
+            "V2.0.0",
             "V1.0.0"
         ],
-        "status": "up to date",
+        "status": "update available",
         "supportedOS": {
             "windows": "py.exe"
         },
         "installedVersion": "V1.0.0",
-        "iconUrl": null
+        "iconUrl": "https://raw.githubusercontent.com/TI-Connectivity-Toolbox-Org/Lior-python/refs/heads/main/Python-logo-notext.jpg"
     },
     "3": {
         "id": "3",
@@ -48,21 +49,38 @@
             "windows": "dist/weather-app.exe"
         },
         "installedVersion": "v1.0.2",
-        "iconUrl": null
+        "iconUrl": "https://raw.githubusercontent.com/TI-Connectivity-Toolbox-Org/Ti-weather-app/refs/heads/tauri-desktop/src/weather-icon-13.jpg"
     },
     "4": {
         "id": "4",
         "name": "Snake",
         "description": "Yep, that's right. It's the snake game",
-        "latestVersion": "v1.0.0",
+        "latestVersion": "v2.0.0",
         "versions": [
+            "v2.0.0",
             "v1.0.0"
         ],
-        "status": "up to date",
+        "status": "update available",
         "supportedOS": {
             "windows": "TinySnake.x64.exe"
         },
         "installedVersion": "v1.0.0",
-        "iconUrl": null
+        "iconUrl": "https://raw.githubusercontent.com/TI-Connectivity-Toolbox-Org/Snake-game/refs/heads/main/snake-game-icon.png"
+    },
+    "5": {
+        "id": "5",
+        "name": "Simplelink WiFi Toolbox",
+        "description": "The Wi-Fi toolbox package provides all the capabilities required to debug and monitor WLAN/Bluetooth® Low Energy firmware with a host, perform RF validation tests, run pretest for regulatory certification testing, and debug hardware and software platform integration issues.",
+        "latestVersion": "v2.0.0",
+        "versions": [
+            "v2.0.0",
+            "v1.0.0"
+        ],
+        "status": "up to date",
+        "supportedOS": {
+            "windows": "./simplelink-wifi-toolbox.exe"
+        },
+        "installedVersion": "v2.0.0",
+        "iconUrl": "https://raw.githubusercontent.com/TI-Connectivity-Toolbox-Org/simplelink_wifi_toolbox/refs/heads/main/ti-red-logo.svg"
     }
 }

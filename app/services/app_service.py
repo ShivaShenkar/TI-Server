@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import psutil
 import time
 import threading
 from dataclasses import asdict
@@ -9,8 +10,8 @@ from typing import Callable, Dict, Literal, Optional
 from pydantic import TypeAdapter
 from requests import Response
 
-from app.config.config import TEMP_DATA_PATH
-from app.models import AppModel, ReleaseURLs
+from app.config.config import RUNNING_APPS_PATH, TEMP_DATA_PATH
+from app.models import AppModel, ReleaseInfo
 from app.models.manifest_model import ManifestModel
 from app.models.ws_message import WSMessage
 from app.repositories import AppDb
@@ -58,9 +59,24 @@ def get_app_status(
 ) -> Literal["not installed", "update available", "up to date"]:
     if not installed_version:
         return "not installed"
-    if installed_version != latest_version:
+    try:
+        installed_tuple = parse_version(installed_version)
+        latest_tuple = parse_version(latest_version)
+    except ValueError:
+        return "not installed"
+    if installed_tuple < latest_tuple:
         return "update available"
     return "up to date"
+
+
+def parse_version(version: str) -> tuple[int, ...]:
+    """Parse 'V1.10.1' or 'v1.0.0' into (1, 10, 1) or (1, 0, 0)."""
+    import re
+
+    match = re.search(r"(\d[\d.]*)", version)
+    if not match:
+        raise ValueError(f"Invalid version string: {version}")
+    return tuple(int(part) for part in match.group(1).split("."))
 
 
 class Apps:
@@ -75,7 +91,7 @@ class Apps:
     _processes_lock: threading.RLock
     _broadcast_callback: Optional[Callable[[Dict[str, str]], None]]
 
-    _running_processes: Dict[str, subprocess.Popen[str]]
+    _running_processes: Dict[str, int]
 
     def __new__(cls) -> "Apps":
         if not cls._instance:
@@ -152,6 +168,14 @@ class Apps:
         for id in self._manifests.keys():
             installedVersion = self._installed_apps.get_installed_version(id)
             latestVersion = self._releases[id].get_latest_version()
+            icon_path = self._manifests[id].iconPath
+            db_item = self._db.get_db_item(id)
+            latest_branch = self._releases[id].get_latest()[1].branch
+            icon_url = (
+                None
+                if not icon_path or not db_item
+                else f"https://raw.githubusercontent.com/{db_item.owner}/{db_item.repo}/refs/heads/{latest_branch}/{icon_path}"
+            )
             self._apps[id] = AppModel(
                 id=id,
                 name=self._manifests[id].name,
@@ -161,12 +185,13 @@ class Apps:
                 installedVersion=installedVersion,
                 supportedOS=self._manifests[id].supportedOS,
                 status=get_app_status(installedVersion, latestVersion),
+                iconUrl=icon_url,
             )
 
         self.store_apps_in_temp()
 
     def fetch_from_temp_file(self) -> None:
-        print("Reading files from temp file,")
+        print("Reading apps from temp file,")
         self.read_temp_file()
         if not self._apps:
             print(
@@ -202,10 +227,12 @@ class Apps:
             self._db.read_local_db()
             for id, db_item in self._db.get_db().items():
                 app_versions = data[id]["versions"]
-                app_releases_dict: Dict[str, ReleaseURLs] = {
-                    version: ReleaseURLs(
+                app_releases_dict: Dict[str, ReleaseInfo] = {
+                    version: ReleaseInfo(
                         zipball_url=f"https://api.github.com/repos/{db_item.owner}/{db_item.repo}/zipball/{version}",
                         tarball_url=f"https://api.github.com/repos/{db_item.owner}/{db_item.repo}/tarball/{version}",
+                        # branch name is not necessary here (only needed for getting iconUrl)
+                        branch="main",
                     )
                     for version in app_versions
                 }
@@ -224,6 +251,8 @@ class Apps:
                 break
         if not res:
             print("Storing to temp file failed")
+        else:
+            print("Temp data deleted successfully!")
 
     # def fetch_landing_page(self) -> int:
     #     print("Fetching data for landing page...")
@@ -442,11 +471,11 @@ class Apps:
                 time.sleep(0.5)
                 stopped: list[str] = []
                 with self._processes_lock:
-                    for app_id, process in list(self._running_processes.items()):
-                        if process.poll() is not None:
+                    for app_id, pid in list(self._running_processes.items()):
+                        if not psutil.pid_exists(pid):
                             stopped.append(app_id)
-                    for app_id in stopped:
-                        self._running_processes.pop(app_id, None)
+                            del self._running_processes[app_id]
+
                 for app_id in stopped:
                     print("Monitoring function found a stopped app, sending to client.")
                     if self._broadcast_callback:
@@ -499,29 +528,28 @@ class Apps:
         print(f"Stopping app with id {app_id} ...")
 
         with self._processes_lock:
-            process = self._running_processes.get(app_id)
-            if not process:
+            pid = self._running_processes.get(app_id)
+            if not pid:
                 print(f"Couldn't find running app with id {app_id}")
-                # Client still need to know that app is not running
                 if self._broadcast_callback:
                     msg = asdict(WSMessage(type="app-stopped", appId=app_id))
                     self._broadcast_callback(msg)
                 return False, 400
 
+        try:
+            process = psutil.Process(pid)
+            process.terminate()
             try:
-                process.terminate()
-                try:
-                    process.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    process.kill()
-                    process.wait()
+                process.wait(timeout=5)
+            except Exception:
+                process.kill()
+                process.wait()
+        except Exception as e:
+            print(f"Error: failed to stop app {app_id}. Message: {e}")
+            return False, 500
 
-            except Exception as e:
-                print(f"Error: failed to stop app {app_id}. Message: {e}")
-                return False, 500
-
-            print(f"App with id {app_id} stopped successfully!")
-            return True, 200
+        print(f"App with id {app_id} stopped successfully!")
+        return True, 200
 
     def run_app(self, app_id: str) -> tuple[bool, int]:
         print(f"Running app with id {app_id} ...")
@@ -530,16 +558,14 @@ class Apps:
             print(f"Couldn't find installed app with id {app_id}")
             return False, 400
 
-        with self._processes_lock:
-            if app_id in self._running_processes:
-                return False, 409
-
         exe_path = self._get_app_executable_path(app_id)
         if not exe_path:
             print(f"Couldn't find exe path for app with id {app_id}")
             return False, 404
 
-        try:
+        with self._processes_lock:
+            if app_id in self._running_processes:
+                return False, 409
             process = subprocess.Popen(
                 [exe_path],
                 cwd=os.path.dirname(exe_path),
@@ -548,12 +574,7 @@ class Apps:
                     subprocess.CREATE_NEW_CONSOLE if sys.platform == "win32" else 0
                 ),
             )
-        except Exception as e:
-            print(f"Error: failed to run app {app_id}. Message: {e}")
-            return False, 500
-
-        with self._processes_lock:
-            self._running_processes[app_id] = process  # type: ignore
+            self._running_processes[app_id] = process.pid
 
         if self._broadcast_callback:
             msg = asdict(WSMessage("app-running", app_id))
@@ -567,4 +588,40 @@ class Apps:
         ) and not self._installed_apps.get_installed_version(app_id):
             return False, 400
         with self._processes_lock:
-            return app_id in self._running_processes, 200
+            pid = self._running_processes.get(app_id)
+        if pid is not None and psutil.pid_exists(pid):
+            return True, 200
+        return False, 200
+
+    def store_running_apps(self) -> None:
+        print("Writing records of currently running apps in json file")
+        print("Current dict: ", self._running_processes)
+        with self._processes_lock:
+            snapshot = dict(self._running_processes)
+        res = False
+        for i in range(5):
+            res = override_json_file(RUNNING_APPS_PATH, snapshot)
+            if res:
+                break
+            else:
+                print(f"Storing failed, trying again (Attempt {i+1}/5)")
+        if not res:
+            print("Storing to running_apps file failed")
+        else:
+            print("Stored successfully!")
+
+    def read_running_apps_file(self) -> None:
+        print("Reading the running-apps.json file...")
+        data = read_json_file(RUNNING_APPS_PATH)
+        try:
+            pids = TypeAdapter(Dict[str, int]).validate_python(data)
+            for app_id, pid in pids.items():
+                if psutil.pid_exists(pid):
+                    print(
+                        f"  App {app_id} (PID {pid}) is still running from previous session"
+                    )
+                    with self._processes_lock:
+                        self._running_processes[app_id] = pid
+            print(f"Read {len(pids)} app(s) from file (tracked from fresh start)")
+        except Exception as e:
+            warnings.warn(f"Error: could not read running apps from file: {e}")

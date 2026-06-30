@@ -3,7 +3,7 @@ import json
 from github import Github, GithubException
 from typing import Tuple, Dict
 import time
-from app.models import ReleaseURLs
+from app.models import ReleaseInfo
 from typing import Any
 
 
@@ -22,25 +22,25 @@ def print_rate_limit():
         return
 
 
-def get_latest_release(owner: str, repo: str) -> Tuple[str, ReleaseURLs] | None:
+def get_latest_release(owner: str, repo: str) -> Tuple[str, ReleaseInfo] | None:
     try:
         global g
         print_rate_limit()
         g_repo = g.get_repo(f"{owner}/{repo}")
         latest = g_repo.get_latest_release()
-        return (latest.tag_name, ReleaseURLs(zipball_url=latest.zipball_url, tarball_url=latest.tarball_url))  # type: ignore
+        return (latest.tag_name, ReleaseInfo(zipball_url=latest.zipball_url, tarball_url=latest.tarball_url))  # type: ignore
     except GithubException as e:
         print(f"Error: {e}")
     return
 
 
-def get_app_releases(owner: str, repo: str) -> Dict[str, ReleaseURLs] | None:
+def get_app_releases(owner: str, repo: str) -> Dict[str, ReleaseInfo] | None:
     try:
         global g
         print_rate_limit()
         g_repo = g.get_repo(f"{owner}/{repo}")
         releases = g_repo.get_releases()
-        return {r.tag_name: ReleaseURLs(zipball_url=r.zipball_url, tarball_url=r.tarball_url) for r in releases}  # type: ignore
+        return {r.tag_name: ReleaseInfo(zipball_url=r.zipball_url, tarball_url=r.tarball_url) for r in releases}  # type: ignore
     except GithubException as e:
         print(f"Error: {e}")
     return

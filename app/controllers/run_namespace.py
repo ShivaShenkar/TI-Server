@@ -18,8 +18,8 @@ class RunNamespace(Namespace):
                 apps.run_app(data["appId"])
             case "stop":
                 apps.stop_app(data["appId"])
-            case "app-stopped" | "app-running":
-                print("Im The GOATTTTTTTTT!!!!")
+            case "status":
+                self.send_response({"type": "running-apps", "appIds": list(apps._running_processes)})  # type: ignore
 
     def send_response(self, response: Dict[str, str]):
         self.emit("server_response", data=response)  # type: ignore

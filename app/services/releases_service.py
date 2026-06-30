@@ -1,11 +1,10 @@
-from typing import Dict, Any, Tuple
+from typing import Dict, Tuple
 
-from app.models import ReleaseURLs
+from app.models import ReleaseInfo
 
 # from app.services.github_service import get_latest_release, get_app_releases
 from app.services.http_service import get_http_response
 from app.repositories import AppDb
-import warnings
 
 
 def check_valid_release_format(item: dict) -> bool:  # type:ignore
@@ -19,56 +18,56 @@ def check_valid_release_format(item: dict) -> bool:  # type:ignore
         raise ValueError("Invalid release data format: expected fields to be string")
 
 
-def convert_to_releases_model(
-    data: Any,
-) -> Dict[str, ReleaseURLs] | Tuple[str, ReleaseURLs]:
+# def convert_to_releases_model(
+#     data: Any,
+# ) -> Dict[str, ReleaseInfo] | Tuple[str, ReleaseInfo]:
 
-    # if data is a list of all releses
-    if isinstance(data, list):
-        res: Dict[str, ReleaseURLs] = {}
-        for item in data:  # type:ignore
-            try:
-                if not isinstance(item, dict):
-                    raise ValueError(
-                        "Invalid release data format: expected a dictionary"
-                    )
+#     # if data is a list of all releses
+#     if isinstance(data, list):
+#         res: Dict[str, ReleaseInfo] = {}
+#         for item in data:  # type:ignore
+#             try:
+#                 if not isinstance(item, dict):
+#                     raise ValueError(
+#                         "Invalid release data format: expected a dictionary"
+#                     )
 
-                check_valid_release_format(item)
+#                 check_valid_release_format(item)
 
-            except Exception as e:
-                warnings.warn(
-                    f"Warning: couldn't fetch a release in item: {item}, skipping. Message: {e}"
-                )
-            else:
-                res[item["tag_name"]] = ReleaseURLs(
-                    # version=item["tag_name"],
-                    zipball_url=item["zipball_url"],  # type:ignore
-                    tarball_url=item["tarball_url"],  # type:ignore
-                )
-        return res
-    # if data is a dictionary of latest release
-    if isinstance(data, dict):
-        check_valid_release_format(data)
-        return (
-            data["tag_name"],
-            ReleaseURLs(
-                zipball_url=data["zipball_url"],  # type:ignore
-                tarball_url=data["tarball_url"],  # type:ignore
-            ),
-        )  # type:ignore
+#             except Exception as e:
+#                 warnings.warn(
+#                     f"Warning: couldn't fetch a release in item: {item}, skipping. Message: {e}"
+#                 )
+#             else:
+#                 res[item["tag_name"]] = ReleaseInfo(
+#                     # version=item["tag_name"],
+#                     zipball_url=item["zipball_url"],  # type:ignore
+#                     tarball_url=item["tarball_url"],  # type:ignore
+#                 )
+#         return res
+#     # if data is a dictionary of latest release
+#     if isinstance(data, dict):
+#         check_valid_release_format(data)
+#         return (
+#             data["tag_name"],
+#             ReleaseInfo(
+#                 zipball_url=data["zipball_url"],  # type:ignore
+#                 tarball_url=data["tarball_url"],  # type:ignore
+#             ),
+#         )  # type:ignore
 
-    raise ValueError(
-        "Invalid release data format: expected a list of releases or a single release dictionary"
-    )
+#     raise ValueError(
+#         "Invalid release data format: expected a list of releases or a single release dictionary"
+#     )
 
 
 class AppReleases:
     _id: str
     # key is version, value is the version's url
-    _releases: Dict[str, ReleaseURLs]
+    _releases: Dict[str, ReleaseInfo]
     # _latest: Tuple[str,ReleaseURLs] | None
 
-    def __init__(self, id: str, releases: Dict[str, ReleaseURLs] = {}) -> None:
+    def __init__(self, id: str, releases: Dict[str, ReleaseInfo] = {}) -> None:
         self._id = id
         self._releases = releases
         # self._latest = None
@@ -122,7 +121,11 @@ class AppReleases:
             response_data = response.json()
             for release in response_data:
                 #    print(release)
-                self._releases[release["tag_name"]] = ReleaseURLs(zipball_url=release["zipball_url"], tarball_url=release["tarball_url"])  # type: ignore
+                self._releases[release["tag_name"]] = ReleaseInfo(
+                    zipball_url=release["zipball_url"],
+                    tarball_url=release["tarball_url"],
+                    branch=release["target_commitish"],
+                )
 
         except Exception as e:
             print(
@@ -142,13 +145,13 @@ class AppReleases:
     def get_latest_version(self) -> str:
         return self.get_versions_list()[0]
 
-    def get_latest(self) -> Tuple[str, ReleaseURLs]:
+    def get_latest(self) -> Tuple[str, ReleaseInfo]:
         return next(iter(self._releases.items()))
 
-    def get_releases(self) -> Dict[str, ReleaseURLs]:
+    def get_releases(self) -> Dict[str, ReleaseInfo]:
         return self._releases
 
-    def get_release_by_tag(self, tag: str) -> ReleaseURLs | None:
+    def get_release_by_tag(self, tag: str) -> ReleaseInfo | None:
         if tag in self._releases.keys():
             return self._releases[tag]
         return None

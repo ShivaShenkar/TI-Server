@@ -14,5 +14,9 @@
     "4": {
         "owner": "TI-Connectivity-Toolbox-Org",
         "repo": "Snake-game"
+    },
+    "5": {
+        "owner": "TI-Connectivity-Toolbox-Org",
+        "repo": "simplelink_wifi_toolbox"
     }
 }
