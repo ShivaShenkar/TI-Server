@@ -11,11 +11,11 @@
             "V2.0.0",
             "V1.0.0"
         ],
-        "status": "update available",
+        "status": "up to date",
         "supportedOS": {
             "windows": "dist/alizas-app/alizas-app.exe"
         },
-        "installedVersion": "V1.0.0",
+        "installedVersion": "V5.0.0",
         "iconUrl": null
     },
     "2": {
@@ -27,11 +27,11 @@
             "V2.0.0",
             "V1.0.0"
         ],
-        "status": "not installed",
+        "status": "up to date",
         "supportedOS": {
             "windows": "py.exe"
         },
-        "installedVersion": null,
+        "installedVersion": "V2.0.0",
         "iconUrl": "https://raw.githubusercontent.com/TI-Connectivity-Toolbox-Org/Lior-python/refs/heads/main/Python-logo-notext.jpg"
     },
     "3": {
@@ -44,11 +44,11 @@
             "v1.0.1",
             "v1.0.0"
         ],
-        "status": "not installed",
+        "status": "up to date",
         "supportedOS": {
             "windows": "dist/weather-app.exe"
         },
-        "installedVersion": null,
+        "installedVersion": "v1.0.2",
         "iconUrl": "https://raw.githubusercontent.com/TI-Connectivity-Toolbox-Org/Ti-weather-app/refs/heads/tauri-desktop/src/weather-icon-13.jpg"
     },
     "4": {
@@ -60,11 +60,11 @@
             "v2.0.0",
             "v1.0.0"
         ],
-        "status": "not installed",
+        "status": "up to date",
         "supportedOS": {
             "windows": "TinySnake.x64.exe"
         },
-        "installedVersion": null,
+        "installedVersion": "v2.0.0",
         "iconUrl": "https://raw.githubusercontent.com/TI-Connectivity-Toolbox-Org/Snake-game/refs/heads/main/snake-game-icon.png"
     },
     "5": {
