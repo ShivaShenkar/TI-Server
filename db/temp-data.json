@@ -44,11 +44,11 @@
             "v1.0.1",
             "v1.0.0"
         ],
-        "status": "up to date",
+        "status": "update available",
         "supportedOS": {
             "windows": "dist/weather-app.exe"
         },
-        "installedVersion": "v1.0.2",
+        "installedVersion": "v1.0.1",
         "iconUrl": "https://raw.githubusercontent.com/TI-Connectivity-Toolbox-Org/Ti-weather-app/refs/heads/tauri-desktop/src/weather-icon-13.jpg"
     },
     "4": {
