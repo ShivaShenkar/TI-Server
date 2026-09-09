@@ -5,6 +5,7 @@ from flask_restful import Resource
 
 
 class InstallController(Resource):  # type: ignore[misc]
+    # Install the requested release and translate its result into a client message.
     def get(self, app_id: str, version: str) -> Tuple[Dict[str, object], int]:
         success, code = Apps().install_app_version(app_id, version)
 

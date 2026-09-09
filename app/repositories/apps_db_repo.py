@@ -5,6 +5,7 @@ from typing import Dict, Self
 from app.repositories.filesystem_repo import override_json_file, read_json_file
 
 
+# Shared mapping from app IDs to GitHub repositories.
 class AppDb:
     _instance = None
     _db: Dict[str, DbItem]
@@ -18,6 +19,7 @@ class AppDb:
 
         return cls._instance
 
+    # Replace and persist the catalog only when a remote fetch succeeds.
     def update_db(self) -> None:
 
         print("Updating db from remote...")
@@ -30,6 +32,7 @@ class AppDb:
         else:
             print("Failed to update db from remote. Keeping the old db.")
 
+    # Validate remote catalog entries and reject an empty replacement.
     def fetch_db_from_remote(self) -> Dict[str, DbItem] | None:
 
         try:
@@ -50,6 +53,7 @@ class AppDb:
             print(f"Failed to update db from github. Error: {e}")
             return
 
+    # Serialize validated repository entries into the local catalog file.
     def save_db_locally(self) -> None:
 
         print("Saving updated db locally...")
@@ -62,6 +66,7 @@ class AppDb:
         else:
             print("Error: Couldn't save db locally")
 
+    # Restore the catalog used alongside cached app data.
     def read_local_db(self) -> None:
         print("Parsing local db into AppDb instance..")
 
@@ -79,6 +84,7 @@ class AppDb:
     def get_db(self) -> Dict[str, DbItem]:
         return self._db
 
+    # Return None when an app ID is absent from the catalog.
     def get_db_item(self, app_id: str) -> DbItem | None:
         if app_id in self._db:
             return self._db[app_id]

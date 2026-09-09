@@ -6,9 +6,9 @@ from app.controllers import (
     # FetchByIdController,
     InitialFetchController,
     InstallController,
-    StopController,
-    RunController,
-    RunStatusPollController,
+    # StopController,
+    # RunController,
+    # RunStatusPollController,
     ShutdownCancelController,
     ShutdownController,
     ShutdownScheduleController,
@@ -57,15 +57,16 @@ def serve_ui(path: str):
     return send_from_directory(UI_DIR, "index.html")
 
 
-api.add_resource(FetchController, "/api/fetch-data")  # type: ignore
 # api.add_resource(FetchByIdController, "/api/fetch-data/<string:app_id>") # type: ignore
+# api.add_resource(RunController, "/api/run-app/<string:app_id>")  # type: ignore
+# api.add_resource(RunStatusPollController, "/api/run-status/<string:app_id>")  # type: ignore
+# api.add_resource(StopController, "/api/stop-app/<string:app_id>")  # type: ignore
+
+api.add_resource(FetchController, "/api/fetch-data")  # type: ignore
 api.add_resource(InitialFetchController, "/api/initial-fetch")  # type: ignore
 api.add_resource(InstallController, "/api/install-app/<string:app_id>/<string:version>")  # type: ignore
-api.add_resource(RunController, "/api/run-app/<string:app_id>")  # type: ignore
-api.add_resource(RunStatusPollController, "/api/run-status/<string:app_id>")  # type: ignore
 api.add_resource(UninstallController, "/api/uninstall-app/<string:app_id>")  # type: ignore
 api.add_resource(UpdateController, "/api/update-app/<string:app_id>/<string:version>")  # type: ignore
-api.add_resource(StopController, "/api/stop-app/<string:app_id>")  # type: ignore
 api.add_resource(ShutdownController, "/api/shutdown")  # type: ignore
 api.add_resource(ShutdownScheduleController, "/api/shutdown/schedule")  # type: ignore
 api.add_resource(ShutdownCancelController, "/api/shutdown/cancel")  # type: ignore
@@ -89,7 +90,7 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, close_server)
     signal.signal(signal.SIGTERM, close_server)
     if hasattr(signal, "SIGHUP"):
-        signal.signal(signal.SIGHUP, close_server)
+        signal.signal(signal.SIGHUP, close_server)  # type: ignore
 
     threading.Timer(
         1.5,

@@ -20,6 +20,7 @@ def is_path_file(path: str) -> bool:
     return os.path.exists(path) and os.path.isfile(path)
 
 
+# Treat missing files as already deleted; report filesystem failures as False.
 def delete_file(path: str) -> bool:
     if not os.path.exists(path) or not os.path.isfile(path):
         return True
@@ -31,6 +32,7 @@ def delete_file(path: str) -> bool:
         return False
 
 
+# Create the toolbox root, removing a conflicting regular file if necessary.
 def get_ct_folder() -> str:
     drive = get_main_drive()
     path = os.path.join(drive, "Connectivity-Toolbox")
@@ -42,6 +44,7 @@ def get_ct_folder() -> str:
     return path
 
 
+# Ensure the toolbox installation directory exists.
 def get_ct_apps_folder() -> str:
     path = os.path.join(get_ct_folder(), "apps")
     if is_path_file(path):
@@ -71,6 +74,7 @@ def get_ct_apps_folder() -> str:
 #         return True
 
 
+# Serialize JSON writes within this process; return False on filesystem errors.
 def override_json_file(path: str, data: Any) -> bool:
     with data_lock:
         try:
@@ -86,6 +90,7 @@ def override_json_file(path: str, data: Any) -> bool:
         return True
 
 
+# Use the same lock as writers and return None for unreadable or invalid JSON.
 def read_json_file(path: str) -> Any:
     with data_lock:
         try:
@@ -106,6 +111,7 @@ def read_json_file(path: str) -> Any:
 #     return {}
 
 
+# Read the installed manifest, raising if its directory or file is missing.
 def get_manifest_file(app_id: str) -> Any:
     from app.config import APPS_PATH
 
@@ -145,6 +151,7 @@ def remove_installed_app_directory(app_id: str) -> tuple[bool, int]:
     return True, 200
 
 
+# Stream a TAR archive into the app folder, stripping its top-level directory.
 def install_tar_file(app_id: str, tar_url: str) -> tuple[bool, int]:
     print(f"Installing tar file for app {app_id} from {tar_url} ...")
     from app.config import APPS_PATH
@@ -175,6 +182,7 @@ def install_tar_file(app_id: str, tar_url: str) -> tuple[bool, int]:
     return True, 200
 
 
+# Download a ZIP, extract its contents, then remove the temporary archive.
 def install_zip_file(app_id: str, zip_url: str) -> tuple[bool, int]:
     print(f"Installing zip file for app {app_id} from {zip_url} ...")
     from app.config import APPS_PATH

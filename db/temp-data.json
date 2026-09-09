@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
     "1": {
         "id": "1",
@@ -84,3 +85,6 @@
         "iconUrl": "https://raw.githubusercontent.com/TI-Connectivity-Toolbox-Org/simplelink_wifi_toolbox/refs/heads/main/ti-red-logo.svg"
     }
 }
+=======
+{}
+>>>>>>> 1b96dbbc8c3832f02c8dc3cffd4ad8dbe6e14196
