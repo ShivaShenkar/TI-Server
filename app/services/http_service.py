@@ -1,4 +1,4 @@
-import requests  
+import requests
 
 
 # Return the response, allowing network and HTTP errors to reach the caller.

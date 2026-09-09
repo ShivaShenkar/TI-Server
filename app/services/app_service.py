@@ -266,7 +266,6 @@ class Apps:
         else:
             print("Temp data deleted successfully!")
 
-
     ###################### UTILITY FUNCTIONS ######################
 
     # Expose the shared app mapping for controller serialization.

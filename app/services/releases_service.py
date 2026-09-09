@@ -18,8 +18,7 @@ def check_valid_release_format(item: dict) -> bool:  # type:ignore
         raise ValueError("Invalid release data format: expected fields to be string")
 
 
-
-#instance storing releases of a single app
+# instance storing releases of a single app
 class AppReleases:
     _id: str
     # key is version, value is the version's urls and branch
@@ -62,7 +61,6 @@ class AppReleases:
             )
         else:
             print(f"Loaded releases of app with id {self._id} Successfully!")
-
 
     # Preserve release order for the client version selector.
     def get_versions_list(self) -> list[str]:

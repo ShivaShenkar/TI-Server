@@ -14,9 +14,7 @@ class UpdateController(Resource):  # type: ignore[misc]
             message = (
                 "App not found"
                 if code == 400
-                else "App is not installed"
-                if code == 404
-                else "Could not update app"
+                else "App is not installed" if code == 404 else "Could not update app"
             )
 
         return {"success": status, "message": message}, code

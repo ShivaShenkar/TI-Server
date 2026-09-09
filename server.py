@@ -56,6 +56,7 @@ def serve_ui(path: str):
     # SPA fallback: any unmatched path serves index.html
     return send_from_directory(UI_DIR, "index.html")
 
+
 # api.add_resource(FetchByIdController, "/api/fetch-data/<string:app_id>") # type: ignore
 # api.add_resource(RunController, "/api/run-app/<string:app_id>")  # type: ignore
 # api.add_resource(RunStatusPollController, "/api/run-status/<string:app_id>")  # type: ignore
@@ -89,7 +90,7 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, close_server)
     signal.signal(signal.SIGTERM, close_server)
     if hasattr(signal, "SIGHUP"):
-        signal.signal(signal.SIGHUP, close_server) #type: ignore
+        signal.signal(signal.SIGHUP, close_server)  # type: ignore
 
     threading.Timer(
         1.5,

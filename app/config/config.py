@@ -16,7 +16,7 @@ def _get_db_path(filename: str) -> str:
     if getattr(sys, "frozen", False) and filename == "apps.json":
         target = os.path.join(base, filename)
         if not os.path.exists(target):
-            bundled = os.path.join(sys._MEIPASS, "db", filename)  #type: ignore
+            bundled = os.path.join(sys._MEIPASS, "db", filename)  # type: ignore
             if os.path.exists(bundled):
                 shutil.copy2(bundled, target)
                 print(f"Copied bundled {filename} to {target}")
