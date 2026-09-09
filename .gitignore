@@ -6,3 +6,4 @@ venv/
 .mypy_cache/
 build/
 dist/
+db/temp-data.json
