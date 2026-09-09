@@ -30,6 +30,7 @@ from app.config import APPS_PATH
 from app.services.http_service import get_http_response
 
 
+# Load and validate the manifest from the requested GitHub release tag.
 def get_app_manifest(app_id: str, version: str) -> ManifestModel | None:
 
     db = AppDb()
@@ -54,6 +55,7 @@ def get_app_manifest(app_id: str, version: str) -> ManifestModel | None:
     return None
 
 
+# Compare numeric versions; missing or invalid versions count as not installed.
 def get_app_status(
     installed_version: str | None, latest_version: str
 ) -> Literal["not installed", "update available", "up to date"]:
@@ -79,6 +81,7 @@ def parse_version(version: str) -> tuple[int, ...]:
     return tuple(int(part) for part in match.group(1).split("."))
 
 
+# Share catalog caches and tracked process IDs across requests and socket events.
 class Apps:
     _instance = None
     # key is app id, value is AppModel
@@ -93,6 +96,7 @@ class Apps:
 
     _running_processes: Dict[str, int]
 
+    # Initialize the shared repositories and process lock only once.
     def __new__(cls) -> "Apps":
         if not cls._instance:
             cls._instance = super().__new__(cls)
@@ -113,11 +117,12 @@ class Apps:
 
     ###################### APP FETCHING ######################
 
+    # Refresh releases for catalog entries and discard apps with no releases.
     def fetch_apps_releases(self) -> None:
 
         db_dict = self._db.get_db()
 
-        # remove apps that are not in db anymore (and their releases)
+        # Refresh each catalog entry and skip apps whose releases cannot be loaded.
         for id in db_dict.keys():
             if id not in self._releases.keys():
                 self._releases[id] = AppReleases(id)
@@ -130,6 +135,7 @@ class Apps:
                 self.remove_app_from_memory(id)
                 continue
 
+    # Load latest manifests and exclude apps unsupported on this OS.
     def fetch_apps_manifest(self) -> None:
         device_os = self._get_os()
         db_dict = self._db.get_db()
@@ -159,6 +165,7 @@ class Apps:
 
     # def write_data_to_temp() ->None:
 
+    # Combine remote metadata with local installation state, then cache the result.
     def initial_fetch(self) -> None:
         print("Initial fetch triggered, loading data from remote...")
         self._db.update_db()
@@ -190,6 +197,7 @@ class Apps:
 
         self.store_apps_in_temp()
 
+    # Fall back to a remote refresh when no valid cached apps remain.
     def fetch_from_temp_file(self) -> None:
         print("Reading apps from temp file,")
         self.read_temp_file()
@@ -199,6 +207,7 @@ class Apps:
             )
             self.initial_fetch()
 
+    # Persist client-facing app records, retrying failed writes up to five times.
     def store_apps_in_temp(self) -> None:
         print("Storing Apps data in a temp file...")
         res = False
@@ -215,6 +224,7 @@ class Apps:
         else:
             print("Stored successfully!")
 
+    # Rebuild models and release URLs from cached records and the local catalog.
     def read_temp_file(self) -> None:
         data = read_json_file(TEMP_DATA_PATH)
         apps_adapter = TypeAdapter(Dict[str, AppModel])
@@ -225,6 +235,7 @@ class Apps:
             # db and temp file both fetched at the same time
             # so I can rely on the db file
             self._db.read_local_db()
+            # Cached version tags are enough to reconstruct archive download URLs.
             for id, db_item in self._db.get_db().items():
                 app_versions = data[id]["versions"]
                 app_releases_dict: Dict[str, ReleaseInfo] = {
@@ -242,6 +253,7 @@ class Apps:
             warnings.warn(f"Error: could not read apps data from temp file: {e}")
             self._apps = {}
 
+    # Clear the cache contents without removing the JSON file.
     def delete_temp_file(self) -> None:
         print("Deleting Apps data from the temp file...")
         res = False
@@ -254,106 +266,10 @@ class Apps:
         else:
             print("Temp data deleted successfully!")
 
-    # def fetch_landing_page(self) -> int:
-    #     print("Fetching data for landing page...")
-
-    #     device_os = self._get_os()
-    #     if not device_os:
-    #         print('Can\'t fetch apps for loading pages, Couldn\'t resolve OS type')
-    #         return 510
-    #     self._db.update_db()
-    #     db_dict = self._db.get_db()
-
-    #     for id in self._releases.keys():
-    #         if id not in db_dict.keys():
-    #             warnings.warn(
-    #                 f"Warning: App with id {id} is in releases cache but not in db, removing app"
-    #             )
-    #             self._apps.pop(id, None)
-    #             self._releases.pop(id, None)
-    #     # getting app versions
-    #     print('Loading latest releases for all apps..')
-    #     for id in db_dict.keys():
-    #         if id not in self._releases.keys():
-    #             self._releases[id] = AppReleases(id)
-    #         self._releases[id].load_latest()
-    #         if not self._releases[id].get_latest():
-    #             warnings.warn(
-    #                 f"Warning: couldn't fetch latest release of app with id {id}, App skipped.."
-    #             )
-    #             self._apps.pop(id, None)
-    #             continue
-    #         print(f'Loading manifest of app with id: {id}')
-    #         latest_app_manifest = get_app_manifest(id, self._releases[id].get_latest()[0])
-    #         if not latest_app_manifest:
-    #             warnings.warn(
-    #                 f"Warning: Couldn't fetch manifest from latest version of app with id {id}, App skipped.."
-    #             )
-    #             self._apps.pop(id, None)
-    #             continue
-
-    #         if device_os not in latest_app_manifest.supportedOS:
-    #             print(f'App with id {id} does not support user\'s OS')
-    #             self._apps.pop(id, None)
-    #             continue
-
-    #         self._apps[id] = AppModel(
-    #             id=id,
-    #             name=latest_app_manifest.name,
-    #             description=latest_app_manifest.description,
-    #             latestVersion=self._releases[id].get_latest()[0],
-    #             versions=None,
-    #             supportedOS=latest_app_manifest.supportedOS,
-    #             status=get_app_status(
-    #                 self._installed_apps.get_installed_version(id),
-    #                 self._releases[id].get_latest()[0],
-    #             ),
-    #             installedVersion=self._installed_apps.get_installed_version(id),
-    #             iconUrl=latest_app_manifest.iconPath,
-    #         )
-    #     print("Finished fetching data for landing page")
-    #     return 200
-
-    # def fetch_app_details(self, app_id: str) -> int:
-    #     self._db.update_db()
-    #     if not self._db.get_db_item(app_id):
-    #         print(f"Couldn't find app with id {app_id} in Database")
-    #         self._apps.pop(app_id, None)
-    #         self._releases.pop(app_id, None)
-    #         return 404
-    #     if app_id not in self._releases.keys():
-    #         self._releases[app_id] = AppReleases(app_id)
-    #     self._releases[app_id].load_releases()
-    #     if not self._releases[app_id]._releases:
-    #         print(f"Couldn't fetch releases of app with id {app_id}")
-    #         return 404
-    #     version_list = list(self._releases[app_id]._releases.keys())
-    #     latest_version =version_list[0]
-    #     latest_app_manifest = get_app_manifest(
-    #         app_id, latest_version
-    #     )
-    #     if not latest_app_manifest:
-    #         print(f"Couldn't fetch manifest from latest version of app with id {app_id}")
-    #         return 404
-
-    #     installed_version = self._installed_apps.get_installed_version(app_id)
-    #     self._apps[app_id] = AppModel(
-    #         id=app_id,
-    #         name=latest_app_manifest.name,
-    #         description=latest_app_manifest.description,
-    #         versions=version_list,
-    #         latestVersion=latest_version,
-    #         status=get_app_status(
-    #             self._installed_apps.get_installed_version(app_id),
-    #             latest_version,
-    #         ),
-    #         installedVersion=installed_version,
-    #         iconUrl=latest_app_manifest.iconPath,
-    #     )
-    #     return 200
 
     ###################### UTILITY FUNCTIONS ######################
 
+    # Expose the shared app mapping for controller serialization.
     def get_apps(self) -> Dict[str, AppModel]:
         return self._apps
 
@@ -367,6 +283,7 @@ class Apps:
             self._db.update_db()
         return self._db.get_db_item(app_id) is not None
 
+    # Map Python platform names to the OS keys used in manifests.
     def _get_os(self) -> str | None:
         if sys.platform == "win32":
             return "windows"
@@ -426,6 +343,7 @@ class Apps:
         #     )
         #     return False, 404
 
+        # Reject unknown apps or versions before downloading an archive.
         if app_id not in self._apps.keys():
             print(f"App with id: {app_id} is not found")
             return False, 400
@@ -434,6 +352,7 @@ class Apps:
             return False, 400
 
         if sys.platform == "win32":
+            # Windows uses ZIP archives; other supported systems use TAR.
             status, code = install_zip_file(
                 app_id, self._releases[app_id].get_releases()[version].zipball_url
             )
@@ -442,6 +361,7 @@ class Apps:
                 app_id, self._releases[app_id]._releases[version].tarball_url
             )
         if status:
+            # Commit installation metadata only after extraction succeeds.
             self._installed_apps.set_installed_version(app_id, version)
             print(
                 f"Version {version} for app with id {app_id} installed successfully! Updating temp-data file..."
@@ -456,15 +376,18 @@ class Apps:
 
     ###################### APP LAUNCHING\CLOSING OPERATIONS ######################
 
+    # Remove an app from all three related metadata caches.
     def remove_app_from_memory(self, id: str) -> None:
         self._apps.pop(id, None)
         self._releases.pop(id, None)
         self._manifests.pop(id, None)
 
+    # Connect process notifications to the Socket.IO response handler.
     @classmethod
     def set_broadcast_callback(cls, callback: Callable[[Dict[str, str]], None]) -> None:
         cls._broadcast_callback = callback
 
+    # Poll tracked PIDs and notify the client when a process disappears.
     def monitor_running_apps(self) -> None:
         while True:
             try:
@@ -476,6 +399,7 @@ class Apps:
                             stopped.append(app_id)
                             del self._running_processes[app_id]
 
+                # Emit notifications after releasing the process lock.
                 for app_id in stopped:
                     print("Monitoring function found a stopped app, sending to client.")
                     if self._broadcast_callback:
@@ -484,6 +408,7 @@ class Apps:
             except Exception as e:
                 print(f"Error in monitor loop: {e}")
 
+    # Resolve the installed manifest executable for the current OS.
     def _get_app_executable_path(self, app_id: str) -> str | None:
         from app.repositories.filesystem_repo import get_manifest_file
 
@@ -524,6 +449,7 @@ class Apps:
             return None
         return full_exe_path
 
+    # Terminate the tracked process; the monitor reports its eventual exit.
     def stop_app(self, app_id: str) -> tuple[bool, int]:
         print(f"Stopping app with id {app_id} ...")
 
@@ -540,6 +466,7 @@ class Apps:
             process = psutil.Process(pid)
             process.terminate()
             try:
+                # Allow graceful termination before falling back to a forced kill.
                 process.wait(timeout=5)
             except Exception:
                 process.kill()
@@ -551,6 +478,7 @@ class Apps:
         print(f"App with id {app_id} stopped successfully!")
         return True, 200
 
+    # Validate the installation, track the new PID, and emit its running state.
     def run_app(self, app_id: str) -> tuple[bool, int]:
         print(f"Running app with id {app_id} ...")
 
@@ -566,6 +494,7 @@ class Apps:
         with self._processes_lock:
             if app_id in self._running_processes:
                 return False, 409
+            # Keep launch and PID registration under one lock to prevent duplicates.
             process = subprocess.Popen(
                 [exe_path],
                 cwd=os.path.dirname(exe_path),
@@ -593,6 +522,7 @@ class Apps:
             return True, 200
         return False, 200
 
+    # Save a locked snapshot so surviving processes can be tracked next session.
     def store_running_apps(self) -> None:
         print("Writing records of currently running apps in json file")
         print("Current dict: ", self._running_processes)
@@ -610,6 +540,7 @@ class Apps:
         else:
             print("Stored successfully!")
 
+    # Restore saved app IDs only when their recorded PIDs still exist.
     def read_running_apps_file(self) -> None:
         print("Reading the running-apps.json file...")
         data = read_json_file(RUNNING_APPS_PATH)

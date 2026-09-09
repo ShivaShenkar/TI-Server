@@ -18,90 +18,19 @@ def check_valid_release_format(item: dict) -> bool:  # type:ignore
         raise ValueError("Invalid release data format: expected fields to be string")
 
 
-# def convert_to_releases_model(
-#     data: Any,
-# ) -> Dict[str, ReleaseInfo] | Tuple[str, ReleaseInfo]:
 
-#     # if data is a list of all releses
-#     if isinstance(data, list):
-#         res: Dict[str, ReleaseInfo] = {}
-#         for item in data:  # type:ignore
-#             try:
-#                 if not isinstance(item, dict):
-#                     raise ValueError(
-#                         "Invalid release data format: expected a dictionary"
-#                     )
-
-#                 check_valid_release_format(item)
-
-#             except Exception as e:
-#                 warnings.warn(
-#                     f"Warning: couldn't fetch a release in item: {item}, skipping. Message: {e}"
-#                 )
-#             else:
-#                 res[item["tag_name"]] = ReleaseInfo(
-#                     # version=item["tag_name"],
-#                     zipball_url=item["zipball_url"],  # type:ignore
-#                     tarball_url=item["tarball_url"],  # type:ignore
-#                 )
-#         return res
-#     # if data is a dictionary of latest release
-#     if isinstance(data, dict):
-#         check_valid_release_format(data)
-#         return (
-#             data["tag_name"],
-#             ReleaseInfo(
-#                 zipball_url=data["zipball_url"],  # type:ignore
-#                 tarball_url=data["tarball_url"],  # type:ignore
-#             ),
-#         )  # type:ignore
-
-#     raise ValueError(
-#         "Invalid release data format: expected a list of releases or a single release dictionary"
-#     )
-
-
+#instance storing releases of a single app
 class AppReleases:
     _id: str
-    # key is version, value is the version's url
+    # key is version, value is the version's urls and branch
     _releases: Dict[str, ReleaseInfo]
-    # _latest: Tuple[str,ReleaseURLs] | None
 
+    # Accept restored release data or start with an empty mapping.
     def __init__(self, id: str, releases: Dict[str, ReleaseInfo] = {}) -> None:
         self._id = id
         self._releases = releases
-        # self._latest = None
 
-    # def load_latest(self)->None:
-
-    #     self._latest = None
-    #     db = AppDb()
-    #     app_item = db.get_db_item(self._id)
-    #     if not app_item:
-    #         print(f"Couldn't find app with id {self._id} in Database")
-    #         return
-
-    #     releases_url = (
-    #         f"https://api.github.com/repos/{app_item.owner}/{app_item.repo}/releases/latest"
-    #     )
-    #     try:
-    #         response = get_http_response(releases_url)
-    #         response_data = response.json()
-    #         latest_release = convert_to_releases_model(response_data)
-    #         self._latest = latest_release #type: ignore
-
-    #     except Exception as e:
-    #         print(
-    #             f"Error: Failed to load latest release of app with id {self._id}. Message: {e} "
-    #         )
-    #     else:
-    #         print(f"Loaded latest release of app with id {self._id} Successfully!")
-
-    #     # latest = get_latest_release(app_item.owner,app_item.repo)
-    #     # if not latest:
-    #     #     print(f"Error: Failed to load latest release of app with id {self._id}.")
-    #     # self._latest = latest
-
+    # Rebuild the release mapping in GitHub response order.
     def load_releases(self) -> None:
         print(f"Loading releases of app with id {self._id}")
         self._releases = {}
@@ -134,20 +63,20 @@ class AppReleases:
         else:
             print(f"Loaded releases of app with id {self._id} Successfully!")
 
-        # releases= get_app_releases(app_item.owner,app_item.repo)
-        # if not releases:
-        #     print(f"Error: Failed to load releases of app with id {self._id}.")
-        # self._releases = releases   #type:ignore
 
+    # Preserve release order for the client version selector.
     def get_versions_list(self) -> list[str]:
         return list(self._releases.keys())
 
+    # Treat the first stored release as latest; the mapping must not be empty.
     def get_latest_version(self) -> str:
         return self.get_versions_list()[0]
 
+    # Return the first release tag together with its download metadata.
     def get_latest(self) -> Tuple[str, ReleaseInfo]:
         return next(iter(self._releases.items()))
 
+    # Expose release metadata used to select installation archives.
     def get_releases(self) -> Dict[str, ReleaseInfo]:
         return self._releases
 

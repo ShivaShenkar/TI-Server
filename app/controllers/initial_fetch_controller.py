@@ -3,6 +3,7 @@ from flask_restful import Resource
 
 
 class InitialFetchController(Resource):
+    # Refresh remote metadata and return app records keyed by ID.
     def get(self) -> tuple[dict[str, dict[str, object]], int]:
         apps = Apps()
         apps.initial_fetch()

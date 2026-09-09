@@ -5,6 +5,7 @@ from flask_restful import Resource
 
 
 class UninstallController(Resource):  # type: ignore[misc]
+    # Build the shared response for both uninstall HTTP methods.
     def _run_uninstall(self, app_id: str) -> Tuple[Dict[str, object], int]:
         success, code = Apps().uninstall_app(app_id)
         if success:

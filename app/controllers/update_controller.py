@@ -5,6 +5,7 @@ from flask_restful import Resource
 
 
 class UpdateController(Resource):  # type: ignore[misc]
+    # Updates share the installer; only the response message differs.
     def get(self, app_id: str, version: str) -> Tuple[Dict[str, object], int]:
         status, code = Apps().install_app_version(app_id, version)
         if status:
